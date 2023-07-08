@@ -32,6 +32,25 @@ const figmaTheme = createTheme({
 });
 
 const DataRetriever = ({ des }: { des: string }) => {
+  const stylesDDD = {
+    position: "fixed",
+    zIndex: -1,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#ffffff",
+    writingMode: "vertical-lr",
+    letterSpacing: "16px",
+    paddingTop: "10px",
+    fontSize: "192px",
+    lineHeight: "0.7",
+    fontWeight: 800,
+    background:
+      "linear-gradient(rgba(233, 22, 1), rgba(246, 129, 0), rgba(215, 192, 1), rgba(144, 171, 0), rgba(26, 135, 0), rgba(1, 74, 86), rgba(0, 46, 131), rgba(1, 12, 185))",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    userSelect: "none",
+  };
+
   // fetch year
   const availableYear = ["106", "107", "108", "109", "110", "111"];
   const [getYear, setgetYear] = useState(availableYear[0] || "");
@@ -363,10 +382,7 @@ const DataRetriever = ({ des }: { des: string }) => {
           </AppBar>
         </ThemeProvider>
         <Box className="bg-white w-full h-full fixed overflow-y-scroll">
-          <Typography
-            className={styles.backgroundDiv}
-            aria-label="backgroundCounty"
-          >
+          <Typography style={stylesDDD} aria-label="backgroundCounty">
             TAIWAN
           </Typography>
           <Typography component="div" className="text-center pb-10 pl-24">
