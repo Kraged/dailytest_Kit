@@ -9,14 +9,28 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.13.7",
+    "@mui/material": "^5.13.7",
     "@types/node": "20.3.3",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
+    "@types/xml2js": "^0.4.11",
+    "axios": "^1.4.0",
     "eslint": "8.44.0",
     "eslint-config-next": "13.4.8",
+    "highcharts-react-official": "^3.2.0",
     "next": "13.4.8",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "5.1.6"
+    "react-router-dom": "^6.14.1",
+    "typescript": "5.1.6",
+    "xml2js": "^0.6.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.3.2"
   }
 }
