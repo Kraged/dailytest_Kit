@@ -382,7 +382,11 @@ const DataRetriever = ({ des }: { des: string }) => {
           </AppBar>
         </ThemeProvider>
         <Box className="bg-white w-full h-full fixed overflow-y-scroll">
-          <Typography style={stylesDDD} aria-label="backgroundCounty">
+          <Typography
+            component="div"
+            className={styles.backgroundDiv}
+            aria-label="backgroundCounty"
+          >
             TAIWAN
           </Typography>
           <Typography component="div" className="text-center pb-10 pl-24">
