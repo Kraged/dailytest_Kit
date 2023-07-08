@@ -477,9 +477,16 @@ const DataRetriever = ({ des }: { des: string }) => {
             </FormControl>
             <Button
               variant="contained"
-              className="bg-[#1565c0] p-3 mt-3 w-[7%] text-base"
+              className=" p-3 mt-3 w-[7%] text-base"
               disabled={btnAble}
               onClick={() => handleClick(des)}
+              sx={{
+                color: "white",
+                backgroundColor: "#1565c0",
+                "&:hover": {
+                  backgroundColor: "#1565c0",
+                },
+              }}
             >
               SUMBIT
             </Button>
