@@ -11,9 +11,11 @@ import { parseString } from "xml2js";
 import { OutlinedInput, Typography } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
+import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
 import Divider from "@mui/material/Divider";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
@@ -32,25 +34,6 @@ const figmaTheme = createTheme({
 });
 
 const DataRetriever = ({ des }: { des: string }) => {
-  const stylesDDD = {
-    position: "fixed",
-    zIndex: -1,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "#ffffff",
-    writingMode: "vertical-lr",
-    letterSpacing: "16px",
-    paddingTop: "10px",
-    fontSize: "192px",
-    lineHeight: "0.7",
-    fontWeight: 800,
-    background:
-      "linear-gradient(rgba(233, 22, 1), rgba(246, 129, 0), rgba(215, 192, 1), rgba(144, 171, 0), rgba(26, 135, 0), rgba(1, 74, 86), rgba(0, 46, 131), rgba(1, 12, 185))",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    userSelect: "none",
-  };
-
   // fetch year
   const availableYear = ["106", "107", "108", "109", "110", "111"];
   const [getYear, setgetYear] = useState(availableYear[0] || "");
@@ -83,7 +66,8 @@ const DataRetriever = ({ des }: { des: string }) => {
   const router = useRouter();
   const handleClick = (des: string) => {
     getAxiosCharts(getYear, getCounty, getTown);
-    getCallCharts(true);
+    getCallColCharts(true);
+    getCallPieCharts(true);
     // if (des === "Home") {
     const baseUrl = window.location.origin; // Get the base URL (e.g., http://localhost:3000)
     const url = `${baseUrl}/${getYear}/${getCounty}/${getTown}`;
@@ -102,11 +86,19 @@ const DataRetriever = ({ des }: { des: string }) => {
 
   const [btnAble, setbtnAble] = useState(true);
 
+  let [householdOrdinTotalInt, sethouseholdOrdinTotalInt] = useState<string[]>(
+    []
+  );
+  let [householdSingleTotalInt, sethouseholdSingleTotalInt] = useState<
+    string[]
+  >([]);
   let [householdSingleIntM, sethouseholdSingleIntM] = useState<string[]>([]);
   let [householdSingleIntF, sethouseholdSingleIntF] = useState<string[]>([]);
   let [householdOrdinIntM, sethouseholdOrdinIntM] = useState<string[]>([]);
   let [householdOrdinIntF, sethouseholdOrdinIntF] = useState<string[]>([]);
 
+  let [householdOrdinTotalSum, sethouseholdOrdinTotalSum] = useState(0);
+  let [householdSingleTotalSum, sethouseholdSingleTotalSum] = useState(0);
   let [householdSingleSumM, sethouseholdSingleSumM] = useState(0);
   let [householdSingleSumF, sethouseholdSingleSumF] = useState(0);
   let [householdOrdinSumM, sethouseholdOrdinSumM] = useState(0);
@@ -137,33 +129,27 @@ const DataRetriever = ({ des }: { des: string }) => {
       });
   };
 
-  //   const options = {
-  //     chart: {
-  //       type: "column",
-  //     },
-  //     series: [
-  //       {
-  //         data: chartsData,
-  //       },
-  //     ],
-  //   };
-  const [options, setOptions] = useState({
+  const [optionsCol, setOptionsCol] = useState({
     chart: {
       type: "column",
     },
     title: {
       text: "人口數",
+      style: {
+        fontSize: "16px", // Adjust the font size here
+        paddingTop: "8px", // Adjust the padding
+      },
     },
     yAxis: {
       title: {
         text: "數量",
         style: {
-          fontSize: "16px", // Set the font size of the xAxis labels
-          fontWeight: "bold", // Make the xAxis title bold
+          fontSize: "16px",
+          fontWeight: "bold",
         },
-        align: "high", // Align the title at the top of the yAxis
-        rotation: 0, // Rotate the title if necessary
-        y: -30, // Adjust the vertical position of the title
+        align: "high",
+        rotation: 0,
+        y: -30,
         x: 30,
       },
     },
@@ -172,8 +158,8 @@ const DataRetriever = ({ des }: { des: string }) => {
       title: {
         text: "型態",
         style: {
-          fontSize: "16px", // Set the font size of the xAxis labels
-          fontWeight: "bold", // Make the xAxis title bold
+          fontSize: "16px",
+          fontWeight: "bold",
         },
       },
     },
@@ -191,33 +177,96 @@ const DataRetriever = ({ des }: { des: string }) => {
       column: {
         dataLabels: {
           enabled: true,
-          format: "{point.y}", // Show the y-value of each column
+          format: "{point.y}",
           style: {
-            fontSize: "20px", // Set the font size of the data labels
+            fontSize: "20px",
           },
         },
       },
     },
   });
-  const [chartsData, setChartsData] = useState([10, 25]);
-  // Other state variables as needed
 
-  const [callCharts, getCallCharts] = useState(false);
-  const updateOptions = () => {
-    // Modify the desired properties of the options object
-    setOptions((prevOptions) => ({
+  const [optionsPie, setOptionsPie] = useState({
+    chart: {
+      type: "pie",
+    },
+    title: {
+      text: "戶數統計",
+    },
+    series: [
+      {
+        name: "共同生活",
+        data: [
+          { name: "hi", y: 0 },
+          { name: "bye", y: 88 },
+
+          //   [householdOrdinTotalSum.toString(), 123],
+          //   [householdSingleTotalSum.toString(), 456],
+        ],
+      },
+    ],
+    tooltip: {
+      pointFormat: "{series.name}: <b>{point.y}</b>",
+    },
+    plotOptions: {
+      pie: {
+        allowPointSelect: true,
+        cursor: "pointer",
+
+        dataLabels: {
+          enabled: true,
+          format: "{point.y}",
+        },
+
+        showInLegend: true,
+      },
+    },
+  });
+  const [callColCharts, getCallColCharts] = useState(false);
+  const [callPieCharts, getCallPieCharts] = useState(false);
+  const updateOptions = (
+    ordinSumM: number,
+    ordinSumF: number,
+    ordinTotal: number,
+    singleSumM: number,
+    singleSumF: number,
+    singleTotal: number
+  ) => {
+    setOptionsCol((prevOptions) => ({
       ...prevOptions,
       series: [
         {
           name: "男性",
-          data: [householdOrdinSumM, householdSingleSumM],
+          data: [ordinSumM, singleSumM],
           color: "#7d5fb2",
         },
         {
           name: "女性",
-          data: [householdOrdinSumF, householdSingleSumF],
+          data: [ordinSumF, singleSumF],
           color: "#c29fff",
         },
+      ],
+    }));
+    setOptionsPie((prevOptions) => ({
+      ...prevOptions,
+      series: [
+        {
+          // ["共同生活", "獨立生活"]
+          name: "戶數統計",
+          data: [
+            { name: "共同生活", y: ordinTotal },
+            { name: "獨立生活", y: singleTotal },
+
+            // [householdOrdinTotalSum.toString(), ordinTotal],
+            // [householdSingleTotalSum.toString(), singleTotal],
+          ],
+          color: ["#7d5fb2", "#c29fff"],
+        },
+        // {
+        //   name: "女性",
+        //   data:
+        //   color: "#c29fff",
+        // },
       ],
     }));
   };
@@ -255,12 +304,41 @@ const DataRetriever = ({ des }: { des: string }) => {
             (item: { household_single_f: string }) => item.household_single_f
           )
         );
-        updateOptions();
+        sethouseholdOrdinTotalInt(
+          responseData.map(
+            (item: { household_ordinary_total: string }) =>
+              item.household_ordinary_total
+          )
+        );
+        sethouseholdSingleTotalInt(
+          responseData.map(
+            (item: { household_single_total: string }) =>
+              item.household_single_total
+          )
+        );
       })
       .catch((error) => {
         console.error("Error fetching getAxiosCharts data:", error);
       });
   };
+
+  useEffect(() => {
+    updateOptions(
+      householdOrdinSumM,
+      householdOrdinSumF,
+      householdSingleSumM,
+      householdSingleSumF,
+      householdOrdinTotalSum,
+      householdSingleTotalSum
+    );
+  }, [
+    householdOrdinSumM,
+    householdOrdinSumF,
+    householdSingleSumM,
+    householdSingleSumF,
+    householdOrdinTotalSum,
+    householdSingleTotalSum,
+  ]);
 
   const countyCodesRef = useRef<string[]>([]);
   const countyNameRef = useRef<string[]>([]);
@@ -325,27 +403,35 @@ const DataRetriever = ({ des }: { des: string }) => {
         }, 0)
       );
     }
-    console.log(
-      "Check array in Effect: ",
-      householdOrdinIntM,
-      householdOrdinIntF,
-      householdSingleIntM,
-      householdSingleIntF,
-      "\nCheck sum   in Effect: ",
-      householdOrdinSumM,
-      householdOrdinSumF,
-      householdSingleSumM,
-      householdSingleSumF
-    );
+    if (householdOrdinTotalInt.length > 0) {
+      sethouseholdOrdinTotalSum(
+        householdOrdinTotalInt.reduce((sum: number, item: string) => {
+          return (sum += parseInt(item));
+        }, 0)
+      );
+    }
+    if (householdSingleTotalInt.length > 0) {
+      sethouseholdSingleTotalSum(
+        householdSingleTotalInt.reduce((sum: number, item: string) => {
+          return (sum += parseInt(item));
+        }, 0)
+      );
+    }
+    console.log(householdSingleTotalSum, householdOrdinTotalSum);
   }, [
+    btnAble,
     householdOrdinIntF,
     householdOrdinIntM,
     householdOrdinSumF,
     householdOrdinSumM,
+    householdOrdinTotalInt,
+    householdOrdinTotalSum,
     householdSingleIntF,
     householdSingleIntM,
     householdSingleSumF,
     householdSingleSumM,
+    householdSingleTotalInt,
+    householdSingleTotalSum,
   ]);
 
   const data = router.query;
@@ -511,23 +597,31 @@ const DataRetriever = ({ des }: { des: string }) => {
                 }}
               />
             </Divider>
-            <Typography className="text-4xl pt-12">
+            <div className="text-4xl pt-12">
               {getYear}年 {getCounty} {getTown}
-              {callCharts && (
-                <Typography
-                  component="div"
-                  className="flex justify-center py-10"
-                >
-                  <Typography className="w-[70%] h-128 ">
+              {callColCharts && (
+                <div className="flex justify-center py-10">
+                  <div className="w-[70%] h-128 ">
                     <HighchartsReact
                       highcharts={Highcharts}
-                      options={options}
+                      options={optionsCol}
                       containerProps={{ style: { height: "600px" } }}
                     />
-                  </Typography>
-                </Typography>
+                  </div>
+                </div>
               )}
-            </Typography>
+              {callPieCharts && (
+                <div className="flex justify-center py-10">
+                  <div className="w-[70%] h-128 ">
+                    <HighchartsReact
+                      highcharts={Highcharts}
+                      options={optionsPie}
+                      containerProps={{ style: { height: "600px" } }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </Typography>
         </Box>
       </main>
