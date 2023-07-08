@@ -598,17 +598,24 @@ const DataRetriever = ({ des }: { des: string }) => {
               />
             </Divider>
             <div className="text-4xl pt-12">
-              {getYear}年 {getCounty} {getTown}
+              {/* {!btnAble && (
+              )} */}
+              {/* {getYear}年 {getCounty} {getTown} */}
               {callColCharts && (
-                <div className="flex justify-center py-10">
-                  <div className="w-[70%] h-128 ">
-                    <HighchartsReact
-                      highcharts={Highcharts}
-                      options={optionsCol}
-                      containerProps={{ style: { height: "600px" } }}
-                    />
+                <>
+                  <div>
+                    {getYear}年 {getCounty} {getTown}
                   </div>
-                </div>
+                  <div className="flex justify-center py-10">
+                    <div className="w-[70%] h-128 ">
+                      <HighchartsReact
+                        highcharts={Highcharts}
+                        options={optionsCol}
+                        containerProps={{ style: { height: "600px" } }}
+                      />
+                    </div>
+                  </div>
+                </>
               )}
               {callPieCharts && (
                 <div className="flex justify-center py-10">
