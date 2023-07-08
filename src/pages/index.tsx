@@ -16,8 +16,10 @@ const figmaTheme = createTheme({
 
 export default function Home() {
   return (
-    <ThemeProvider theme={figmaTheme}>
-      <DataRetriever des="Home" />
-    </ThemeProvider>
+    <>
+      <ThemeProvider theme={figmaTheme}>
+        <DataRetriever des="Home" />
+      </ThemeProvider>
+    </>
   );
 }
