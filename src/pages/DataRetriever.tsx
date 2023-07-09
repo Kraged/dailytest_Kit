@@ -562,6 +562,8 @@ const DataRetriever = ({ des }: { des: string }) => {
                       setCallPieCharts(false);
                       setbtnAble(true);
                       setResultText("");
+                    } else {
+                      setbtnAble(false);
                     }
                   }}
                   id="autoYear"
