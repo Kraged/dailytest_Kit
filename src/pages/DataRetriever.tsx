@@ -464,12 +464,14 @@ const DataRetriever = ({ des }: { des: string }) => {
     if (getCounty.length !== 0 && getTown.length !== 0) {
       setbtnAble(false);
     }
-    console.log(getYear, getYear === "");
     if (getCounty.length === 0 && townName.length === 0) {
       setbtnAble(false);
     }
     if (getYear === "" || inputYear === "") {
       setbtnAble(false);
+    }
+    if (inputCounty === "" || getTown === "") {
+      setbtnAble(true);
     }
     if (router.query.slug) {
       setgetYear(data.slug?.[0]!);
@@ -515,6 +517,7 @@ const DataRetriever = ({ des }: { des: string }) => {
     getYear,
     setbtnAble,
     inputYear,
+    inputCounty,
   ]);
 
   return (
@@ -581,6 +584,8 @@ const DataRetriever = ({ des }: { des: string }) => {
                       setCallPieCharts(false);
                       setbtnAble(true);
                       setResultText("");
+                      setInputCounty("");
+                      setgetCounty("");
                     } else {
                       setbtnAble(false);
                     }
