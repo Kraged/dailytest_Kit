@@ -464,14 +464,23 @@ const DataRetriever = ({ des }: { des: string }) => {
     if (getCounty.length !== 0 && getTown.length !== 0) {
       setbtnAble(false);
     }
-    if (getCounty.length === 0 && townName.length === 0) {
-      setbtnAble(false);
+    if (getYear?.length === 0 && getCounty.length > 0) {
+      getAxiosTown(countyCodes[countyName.indexOf(getCounty)]);
+      setControlDisable(false);
     }
-    if (getYear === "" || inputYear === "") {
-      setbtnAble(false);
-    }
-    if (inputCounty === "" || getTown === "") {
+    if (!getCounty || !getYear) {
+      //   setgetTown("");
+      setTownName([""]);
+      setControlDisable(false);
+      setCallColCharts(false);
+      setCallPieCharts(false);
       setbtnAble(true);
+      setResultText("");
+    } else {
+      setControlDisable(true);
+    }
+    if (getCounty) {
+      setControlDisable(true);
     }
     if (router.query.slug) {
       setgetYear(data.slug?.[0]!);
@@ -496,25 +505,14 @@ const DataRetriever = ({ des }: { des: string }) => {
       setCallColCharts(true);
       setCallPieCharts(true);
     }
-    if (!getCounty || !getYear) {
-      setgetTown("");
-      setTownName([""]);
-      setControlDisable(false);
-      setCallColCharts(false);
-      setCallPieCharts(false);
-      setbtnAble(true);
-      setResultText("");
-    } else {
-      setControlDisable(true);
-    }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     router.query.slug,
     getCounty,
+    getYear,
     getTown,
     setControlDisable,
-    getYear,
     setbtnAble,
     inputYear,
     inputCounty,
@@ -579,16 +577,15 @@ const DataRetriever = ({ des }: { des: string }) => {
                   onInputChange={(event, newInputValue) => {
                     setInputYear(newInputValue);
                     if (newInputValue === "" && getYear) {
-                      // X button pressed or input cleared
                       setCallColCharts(false);
                       setCallPieCharts(false);
                       setbtnAble(true);
                       setResultText("");
                       setInputCounty("");
                       setgetCounty("");
-                    } else {
-                      setbtnAble(false);
                     }
+
+                    setbtnAble(true);
                   }}
                   id="autoYear"
                   options={availableYear}
@@ -612,7 +609,6 @@ const DataRetriever = ({ des }: { des: string }) => {
                   sx={{
                     paddingTop: "8px",
                     paddingBottom: "4px",
-                    // marginLeft: "10px",
                     paddingX: "10px",
                     backgroundColor: "white",
                   }}
@@ -624,10 +620,12 @@ const DataRetriever = ({ des }: { des: string }) => {
                   noOptionsText="查無資料"
                   onChange={(event: any, newValue: string | null) => {
                     setgetCounty(newValue || "");
+                    setInputTown("");
                   }}
                   inputValue={inputCounty}
                   onInputChange={(event, newInputValue) => {
                     setInputCounty(newInputValue);
+                    setInputTown("");
                   }}
                   id="autoCounty"
                   options={countyName}
@@ -668,7 +666,6 @@ const DataRetriever = ({ des }: { des: string }) => {
                     handleCountyGetTown(inputCounty);
                     setInputTown(newInputValue);
                     if (newInputValue === "" && getCounty) {
-                      // X button pressed or input cleared
                       setCallColCharts(false);
                       setCallPieCharts(false);
                       setbtnAble(true);
