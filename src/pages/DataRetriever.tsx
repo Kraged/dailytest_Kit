@@ -564,7 +564,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     backgroundColor: "white",
                   }}
                 >
-                  年度
+                  年份
                 </InputLabel>
                 <Autocomplete
                   value={getYear}
@@ -590,7 +590,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      placeholder="年度"
+                      placeholder="年份"
                       InputProps={{
                         ...params.InputProps,
                       }}
