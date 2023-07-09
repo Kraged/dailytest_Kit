@@ -48,7 +48,7 @@ const DataRetriever = ({ des }: { des: string }) => {
     const selectedValue = inputCounty;
     const selectedKey = countyCodes[countyName.indexOf(selectedValue)];
     setgetCounty(selectedValue);
-    setgetTown(""); // Reset the townInput value to empty
+    setgetTown("");
     getAxiosTown(selectedKey);
   };
 
@@ -146,13 +146,6 @@ const DataRetriever = ({ des }: { des: string }) => {
           townName = townItem.map((item: any) => item.townname[0]);
           setTownName(townName);
         });
-      })
-      .catch((error) => {
-        console.error(
-          "Error fetching XML getAxiosTown data:",
-          selectedCountyCodes,
-          error
-        );
       });
   };
 
@@ -461,9 +454,9 @@ const DataRetriever = ({ des }: { des: string }) => {
 
   const router = useRouter();
   const data = router.query;
+  const [controlDisable, setControlDisable] = useState(false);
 
   useEffect(() => {
-    console.log(getCounty, getTown);
     if (getCounty.length !== 0 && getTown.length !== 0) {
       setbtnAble(false);
     }
@@ -490,8 +483,20 @@ const DataRetriever = ({ des }: { des: string }) => {
       setCallColCharts(true);
       setCallPieCharts(true);
     }
+    if (!getCounty) {
+      setgetTown("");
+      setTownName([""]);
+      setControlDisable(false);
+      setCallColCharts(false);
+      setCallPieCharts(false);
+      setbtnAble(true);
+      setResultText("");
+    } else {
+      setControlDisable(true);
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.query.slug, getCounty, getTown]);
+  }, [router.query.slug, getCounty, getTown, setControlDisable]);
 
   return (
     <>
@@ -551,6 +556,13 @@ const DataRetriever = ({ des }: { des: string }) => {
                   inputValue={inputYear}
                   onInputChange={(event, newInputValue) => {
                     setInputYear(newInputValue);
+                    if (newInputValue === "" && getYear) {
+                      // X button pressed or input cleared
+                      setCallColCharts(false);
+                      setCallPieCharts(false);
+                      setbtnAble(true);
+                      setResultText("");
+                    }
                   }}
                   id="autoYear"
                   options={availableYear}
@@ -596,7 +608,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      placeholder="請選擇 區"
+                      placeholder="請選擇 縣/市"
                       InputProps={{
                         ...params.InputProps,
                       }}
@@ -629,6 +641,13 @@ const DataRetriever = ({ des }: { des: string }) => {
                   onInputChange={(event, newInputValue) => {
                     handleCountyGetTown(inputCounty);
                     setInputTown(newInputValue);
+                    if (newInputValue === "" && getCounty) {
+                      // X button pressed or input cleared
+                      setCallColCharts(false);
+                      setCallPieCharts(false);
+                      setbtnAble(true);
+                      setResultText("");
+                    }
                   }}
                   id="autoTown"
                   options={townName}
@@ -639,9 +658,10 @@ const DataRetriever = ({ des }: { des: string }) => {
                       InputProps={{
                         ...params.InputProps,
                       }}
-                      disabled={!getCounty}
+                      disabled={!controlDisable}
                     />
                   )}
+                  disabled={!controlDisable}
                   className="m-1 min-w-[200px] md:w-[200px] mb-2"
                 />
               </FormControl>
@@ -653,9 +673,9 @@ const DataRetriever = ({ des }: { des: string }) => {
                 onClick={() => handleClick()}
                 sx={{
                   color: "white",
-                  backgroundColor: "#1565c0",
+                  backgroundColor: "#651fff",
                   "&:hover": {
-                    backgroundColor: "#1565c0",
+                    backgroundColor: "##651fff",
                   },
                 }}
               >
