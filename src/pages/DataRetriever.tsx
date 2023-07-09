@@ -72,14 +72,14 @@ const DataRetriever = ({ des }: { des: string }) => {
   const availableYear = ["106", "107", "108", "109", "110", "111"];
 
   useEffect(() => {
-    console.log("useEffect for Axios ListCounty: ", callColCharts);
+    // console.log("useEffect for Axios ListCounty: ", callColCharts);
     axios
       .get("https://api.nlsc.gov.tw/other/ListCounty")
       .then((response) => {
         const xmlData = response.data;
         parseString(xmlData, (err, result) => {
           if (err) {
-            console.error("Error parsing XML:", err);
+            // console.error("Error parsing XML:", err);
             return;
           }
           const countyItems = result.countyItems.countyItem;
@@ -94,12 +94,12 @@ const DataRetriever = ({ des }: { des: string }) => {
         });
       })
       .catch((error) => {
-        console.error("Error fetching XML ListCounty data:", error);
+        // console.error("Error fetching XML ListCounty data:", error);
       });
   }, []);
 
   useEffect(() => {
-    console.log("useEffect for inputCounty: ", callColCharts);
+    // console.log("useEffect for inputCounty: ", callColCharts);
     if (inputCounty !== "" && fin !== "") {
       handleCountyGetTown(inputCounty);
     }
@@ -123,7 +123,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         const xmlData = response.data;
         parseString(xmlData, (err, result) => {
           if (err) {
-            console.error("Error parsing XML:", err);
+            // console.error("Error parsing XML:", err);
             return;
           }
           const townItems = result?.townItems?.townItem;
@@ -139,7 +139,7 @@ const DataRetriever = ({ des }: { des: string }) => {
 
   const [fin, setfin] = useState("");
   useEffect(() => {
-    console.log("useEffect for slug: ", callColCharts);
+    // console.log("useEffect for slug: ", callColCharts);
     if (router.query.slug && fin === "") {
       const { slug } = router.query;
       const year = slug?.[0] || "";
@@ -202,12 +202,12 @@ const DataRetriever = ({ des }: { des: string }) => {
         );
       })
       .catch((error) => {
-        console.error("Error fetching getAxiosCharts data:", error);
+        // console.error("Error fetching getAxiosCharts data:", error);
       });
   };
 
   useEffect(() => {
-    console.log("useEffect for Calculating sum: ", callColCharts);
+    // console.log("useEffect for Calculating sum: ", callColCharts);
     if (householdOrdinIntM.length > 0) {
       sethouseholdOrdinSumM(
         householdOrdinIntM.reduce(
@@ -298,7 +298,7 @@ const DataRetriever = ({ des }: { des: string }) => {
   };
 
   useEffect(() => {
-    console.log("useEffect for loadingCharts: ", callColCharts);
+    // console.log("useEffect for loadingCharts: ", callColCharts);
     if (loadingCharts) {
       const timer = setTimeout(() => {
         setLoadingCharts(false);
@@ -308,7 +308,7 @@ const DataRetriever = ({ des }: { des: string }) => {
   }, [loadingCharts]);
 
   useEffect(() => {
-    console.log("useEffect for checking lengths: ", callColCharts);
+    // console.log("useEffect for checking lengths: ", callColCharts);
     getAxiosTown(countyCodes[countyName.indexOf(getCounty)]);
     if (getCounty.length !== 0 && getTown.length !== 0) {
       setbtnAble(false);
@@ -331,7 +331,7 @@ const DataRetriever = ({ des }: { des: string }) => {
   }, [getCounty, getYear, getTown, countyCodes, countyName]);
 
   useEffect(() => {
-    console.log("useEffect for updateOptions: ", callColCharts);
+    // console.log("useEffect for updateOptions: ", callColCharts);
     updateOptions(
       householdOrdinSumM,
       householdOrdinSumF,
