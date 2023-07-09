@@ -1,14 +1,12 @@
 import axios from "axios";
 import Highcharts from "highcharts";
 import { HighchartsReact } from "highcharts-react-official";
-import { Inter } from "next/font/google";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { render } from "react-dom";
 import { parseString } from "xml2js";
 
-import { OutlinedInput, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Backdrop from "@mui/material/Backdrop";
@@ -20,6 +18,7 @@ import Divider from "@mui/material/Divider";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
+import Modal from "@mui/material/Modal";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import SettingsIcon from "@mui/icons-material/Settings";
 import styles from "@component/styles/Home.module.css";
@@ -61,28 +60,43 @@ const DataRetriever = ({ des }: { des: string }) => {
     setgetTown(event.target.value);
   };
 
-  // const { year, county, town } = router.query;
+  const [loadingCharts, setLoadingCharts] = useState(false);
+  const loadingScreen = () => {
+    setLoadingCharts(true);
+  };
 
-  const router = useRouter();
   const handleClick = (des: string) => {
     getAxiosCharts(getYear, getCounty, getTown);
-    getCallColCharts(true);
-    getCallPieCharts(true);
-    // if (des === "Home") {
-    const baseUrl = window.location.origin; // Get the base URL (e.g., http://localhost:3000)
-    const url = `${baseUrl}/${getYear}/${getCounty}/${getTown}`;
-    router.push(
-      {
-        pathname: router.pathname,
-        query: {
-          year: getYear,
-          county: getCounty,
-          town: getTown,
+    loadingScreen();
+    setLoadingCharts(!loadingCharts);
+    setTimeout(() => {
+      getCallColCharts(true);
+      getCallPieCharts(true);
+      const baseUrl = window.location.origin;
+      const url = `${baseUrl}/${getYear}/${getCounty}/${getTown}`;
+      router.push(
+        {
+          pathname: router.pathname,
+          query: {
+            year: getYear,
+            county: getCounty,
+            town: getTown,
+          },
         },
-      },
-      url
-    );
+        url
+      );
+    }, 1400);
   };
+
+  useEffect(() => {
+    if (loadingCharts) {
+      const timer = setTimeout(() => {
+        setLoadingCharts(false);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [loadingCharts]);
 
   const [btnAble, setbtnAble] = useState(true);
 
@@ -132,12 +146,18 @@ const DataRetriever = ({ des }: { des: string }) => {
   const [optionsCol, setOptionsCol] = useState({
     chart: {
       type: "column",
+      backgroundColor: "transparent",
+      marginLeft: 60,
+      marginRight: 10,
+      spacingTop: 100,
+      height: "600px",
     },
     title: {
-      text: "人口數",
+      text: "人口數統計",
+      floating: true,
+      y: -70,
       style: {
-        fontSize: "16px", // Adjust the font size here
-        paddingTop: "8px", // Adjust the padding
+        fontSize: "24px",
       },
     },
     yAxis: {
@@ -146,11 +166,13 @@ const DataRetriever = ({ des }: { des: string }) => {
         style: {
           fontSize: "16px",
           fontWeight: "bold",
+          margin: "0",
+          padding: "0",
         },
         align: "high",
         rotation: 0,
         y: -30,
-        x: 30,
+        x: 50,
       },
     },
     xAxis: {
@@ -189,9 +211,15 @@ const DataRetriever = ({ des }: { des: string }) => {
   const [optionsPie, setOptionsPie] = useState({
     chart: {
       type: "pie",
+      backgroundColor: "transparent",
     },
     title: {
       text: "戶數統計",
+      style: {
+        fontSize: "24px",
+        paddingTop: "8px",
+        paddingLeft: "0px",
+      },
     },
     series: [
       {
@@ -212,10 +240,13 @@ const DataRetriever = ({ des }: { des: string }) => {
       pie: {
         allowPointSelect: true,
         cursor: "pointer",
-
+        colors: ["#626eb2", "#a3b1ff"], // Customize the colors here
         dataLabels: {
           enabled: true,
           format: "{point.y}",
+          style: {
+            fontSize: "20px",
+          },
         },
 
         showInLegend: true,
@@ -251,22 +282,12 @@ const DataRetriever = ({ des }: { des: string }) => {
       ...prevOptions,
       series: [
         {
-          // ["共同生活", "獨立生活"]
           name: "戶數統計",
           data: [
             { name: "共同生活", y: ordinTotal },
             { name: "獨立生活", y: singleTotal },
-
-            // [householdOrdinTotalSum.toString(), ordinTotal],
-            // [householdSingleTotalSum.toString(), singleTotal],
           ],
-          color: ["#7d5fb2", "#c29fff"],
         },
-        // {
-        //   name: "女性",
-        //   data:
-        //   color: "#c29fff",
-        // },
       ],
     }));
   };
@@ -369,12 +390,6 @@ const DataRetriever = ({ des }: { des: string }) => {
   }, []);
 
   useEffect(() => {
-    if (getCounty.length !== 0 && getTown.length !== 0) {
-      setbtnAble(false);
-    }
-  }, [getCounty, getTown]);
-
-  useEffect(() => {
     if (householdOrdinIntM.length > 0) {
       sethouseholdOrdinSumM(
         householdOrdinIntM.reduce((sum: number, item: string) => {
@@ -417,7 +432,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         }, 0)
       );
     }
-    console.log(householdSingleTotalSum, householdOrdinTotalSum);
+    // console.log(householdSingleTotalSum, householdOrdinTotalSum);
   }, [
     btnAble,
     householdOrdinIntF,
@@ -434,9 +449,16 @@ const DataRetriever = ({ des }: { des: string }) => {
     householdSingleTotalSum,
   ]);
 
+  const router = useRouter();
   const data = router.query;
-  const slugt = router.query.slug;
+  //   useEffect(() => {
+  //   }, [getCounty, getTown]);
+
   useEffect(() => {
+    console.log(getCounty, getTown);
+    if (getCounty.length !== 0 && getTown.length !== 0) {
+      setbtnAble(false);
+    }
     if (router.query.slug) {
       setgetYear(data.slug?.[0]!);
       setgetCounty(data.slug?.[1]!);
@@ -444,14 +466,29 @@ const DataRetriever = ({ des }: { des: string }) => {
       const selectedValue = data.slug?.[1]!;
       const selectedKey = countyCodes[countyName.indexOf(selectedValue)];
       getAxiosTown(selectedKey);
+      getAxiosCharts(getYear, getCounty, getTown);
+      loadingScreen();
+
+      if (loadingCharts) {
+        const timer = setTimeout(() => {
+          setLoadingCharts(false);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+      }
+      //   setLoadingCharts(!loadingCharts);
+      getCallColCharts(true);
+      getCallPieCharts(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.query.slug]);
+  }, [router.query.slug, getCounty, getTown]);
 
   return (
     <>
       <Head>
         <title>Kit Chan - DailyViewTest</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
         {/* <meta name="description" content="Generated by create next app" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" /> */}
@@ -471,113 +508,118 @@ const DataRetriever = ({ des }: { des: string }) => {
           <div className={styles.backgroundDiv} aria-label="backgroundCounty">
             TAIWAN
           </div>
-          <Typography component="div" className="text-center pb-10 pl-24">
+          <Typography
+            component="div"
+            className="text-center pb-10 xl:pl-24 md:pl-0"
+          >
             <Typography
-              className="pt-5 pb-10 "
-              variant="h4"
+              className="pt-5 pb-10 text-2xl md:text-3xl"
+              //   variant="h4"
               fontWeight="bold"
               aria-label="contentTitle"
             >
               人口數、戶數按戶別及性別統計
             </Typography>
             {/* Year */}
-            <FormControl sx={{ m: 1, minWidth: 80 }}>
-              <InputLabel id="yearInput" shrink>
-                年份
-              </InputLabel>
-              <Select
-                id="yearInput"
-                label="年份"
-                value={getYear}
-                onChange={handleYearChange}
-              >
-                {availableYear.map((theYear: string, index: number) => (
-                  <MenuItem key={index} value={theYear}>
-                    {theYear}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            {/* County */}
-            <FormControl sx={{ m: 1, width: 200 }}>
-              <InputLabel id="countyInput" shrink>
-                縣/市
-              </InputLabel>
-              <Select
-                id="countyInput"
-                label="縣/市"
-                displayEmpty
-                value={getCounty || ""}
-                onChange={handleCountyChange}
-                renderValue={(selected) => {
-                  if (!selected) {
-                    return (
-                      <Typography className="text-gray-400">
-                        請選擇 縣/市
-                      </Typography>
-                    );
-                  }
-                  return selected;
-                }}
-                inputProps={{ "aria-label": "Without label" }}
-                className="text-left not-italic"
-              >
-                {countyName.map((county: string, index: number) => (
-                  <MenuItem key={countyCodes[index]} value={county}>
-                    {county}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            {/* Town */}
-            <FormControl sx={{ m: 1, width: 200, paddingBottom: 5 }}>
-              <InputLabel id="townInput" shrink>
-                區
-              </InputLabel>
-              <Select
-                id="townInput"
-                label="區"
-                displayEmpty
-                value={getTown || ""}
-                onChange={handleTownChange}
-                renderValue={(selected) => {
-                  if (!selected) {
-                    return (
-                      <Typography className="text-gray-400">
-                        請先選擇 縣/市
-                      </Typography>
-                    );
-                  }
-                  return selected;
-                }}
-                inputProps={{ "aria-label": "Without label" }}
-                className="text-left not-italic"
-                disabled={!getCounty} // Disable townInput when countyInput is empty
-              >
-                {townName.map((townName: string, index: number) => (
-                  <MenuItem key={index} value={townName}>
-                    {townName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Button
-              variant="contained"
-              className=" p-3 mt-3 w-[7%] text-base"
-              disabled={btnAble}
-              onClick={() => handleClick(des)}
-              sx={{
-                color: "white",
-                backgroundColor: "#1565c0",
-                "&:hover": {
+            <div className="flex flex-col md:flex-row md:items-center md:justify-center pb-5">
+              <FormControl sx={{ m: 1, width: 80 }}>
+                <InputLabel id="yearInput" shrink>
+                  年份
+                </InputLabel>
+                <Select
+                  id="yearInput"
+                  label="年份"
+                  value={getYear}
+                  onChange={handleYearChange}
+                >
+                  {availableYear.map((theYear: string, index: number) => (
+                    <MenuItem key={index} value={theYear}>
+                      {theYear}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {/* County */}
+              <FormControl sx={{ m: 1, minWidth: 200, md: "100%" }}>
+                <InputLabel id="countyInput" shrink>
+                  縣/市
+                </InputLabel>
+                <Select
+                  id="countyInput"
+                  label="縣/市"
+                  displayEmpty
+                  value={getCounty || ""}
+                  onChange={handleCountyChange}
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return (
+                        <Typography className="text-gray-400">
+                          請選擇 縣/市
+                        </Typography>
+                      );
+                    }
+                    return selected;
+                  }}
+                  inputProps={{ "aria-label": "Without label" }}
+                  className="text-left not-italic"
+                >
+                  {countyName.map((county: string, index: number) => (
+                    <MenuItem key={countyCodes[index]} value={county}>
+                      {county}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {/* Town */}
+              <FormControl sx={{ m: 1, minWidth: 200, md: "100%" }}>
+                <InputLabel id="townInput" shrink>
+                  區
+                </InputLabel>
+                <Select
+                  id="townInput"
+                  label="區"
+                  displayEmpty
+                  value={getTown || ""}
+                  onChange={handleTownChange}
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return (
+                        <Typography className="text-gray-400">
+                          請先選擇 縣/市
+                        </Typography>
+                      );
+                    }
+                    return selected;
+                  }}
+                  inputProps={{ "aria-label": "Without label" }}
+                  className="text-left not-italic"
+                  disabled={!getCounty} // Disable townInput when countyInput is empty
+                >
+                  {townName.map((townName: string, index: number) => (
+                    <MenuItem key={index} value={townName}>
+                      {townName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button
+                variant="contained"
+                className=" p-3 ml-2 mr-2 my-3 w-[fit] text-base md:w-[7%]"
+                disabled={btnAble}
+                onClick={() => handleClick(des)}
+                sx={{
+                  color: "white",
                   backgroundColor: "#1565c0",
-                },
-              }}
-            >
-              SUMBIT
-            </Button>
+                  "&:hover": {
+                    backgroundColor: "#1565c0",
+                  },
+                }}
+              >
+                SUMBIT
+              </Button>
+            </div>
             <Divider
-              className="w-[70%]"
+              className="md:w-[70%] w[100%]"
               sx={{
                 mx: "auto", // Align center horizontally
                 "::before": {
@@ -598,6 +640,30 @@ const DataRetriever = ({ des }: { des: string }) => {
               />
             </Divider>
             <div className="text-4xl pt-12">
+              {loadingCharts && (
+                <>
+                  <Modal
+                    className="w-[100%] h-[100%]"
+                    open={loadingCharts}
+                    closeAfterTransition
+                    slots={{ backdrop: Backdrop }}
+                    slotProps={{
+                      backdrop: {
+                        timeout: 50,
+                      },
+                    }}
+                  >
+                    <Backdrop
+                      sx={{ color: "#fff", zIndex: 999 }}
+                      open={loadingCharts}
+                      className="flex flex-col"
+                    >
+                      <CircularProgress />
+                      <Typography className="pt-3">載入中...</Typography>
+                    </Backdrop>
+                  </Modal>
+                </>
+              )}
               {/* {!btnAble && (
               )} */}
               {/* {getYear}年 {getCounty} {getTown} */}
@@ -606,12 +672,17 @@ const DataRetriever = ({ des }: { des: string }) => {
                   <div>
                     {getYear}年 {getCounty} {getTown}
                   </div>
-                  <div className="flex justify-center py-10">
-                    <div className="w-[70%] h-128 ">
+                  <div className="flex justify-center py-10 inset-x-0">
+                    <div className="w-[100%] md:w-[70%] inset-x-0">
                       <HighchartsReact
                         highcharts={Highcharts}
                         options={optionsCol}
-                        containerProps={{ style: { height: "600px" } }}
+                        containerProps={{
+                          style: {
+                            height: "600px",
+                            width: "100%",
+                          },
+                        }}
                       />
                     </div>
                   </div>
@@ -619,7 +690,7 @@ const DataRetriever = ({ des }: { des: string }) => {
               )}
               {callPieCharts && (
                 <div className="flex justify-center py-10">
-                  <div className="w-[70%] h-128 ">
+                  <div className="w-[100%] md:w-[70%]">
                     <HighchartsReact
                       highcharts={Highcharts}
                       options={optionsPie}
