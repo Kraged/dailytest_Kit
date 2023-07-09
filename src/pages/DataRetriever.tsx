@@ -1,3 +1,22 @@
+import {
+  Typography,
+  AppBar,
+  Backdrop,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Divider,
+  FormControl,
+  TextField,
+  Autocomplete,
+  InputLabel,
+  MenuItem,
+  Modal,
+  Select,
+  SelectChangeEvent,
+  Toolbar,
+} from "@mui/material";
 import axios from "axios";
 import Highcharts from "highcharts";
 import { HighchartsReact } from "highcharts-react-official";
@@ -6,23 +25,9 @@ import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { parseString } from "xml2js";
 
-import { Typography } from "@mui/material";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import AppBar from "@mui/material/AppBar";
-import Backdrop from "@mui/material/Backdrop";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
-import Divider from "@mui/material/Divider";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Modal from "@mui/material/Modal";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
 import SettingsIcon from "@mui/icons-material/Settings";
 import styles from "@component/styles/Home.module.css";
-import Toolbar from "@mui/material/Toolbar";
 
 const figmaTheme = createTheme({
   palette: {
@@ -35,39 +40,43 @@ const figmaTheme = createTheme({
 const DataRetriever = ({ des }: { des: string }) => {
   // fetch year
   const availableYear = ["106", "107", "108", "109", "110", "111"];
-  const [getYear, setgetYear] = useState(availableYear[0] || "");
-  const handleYearChange = (event: SelectChangeEvent) => {
-    setgetYear(event.target.value);
-  };
+  const [inputYear, setInputYear] = useState("");
+  const [getYear, setgetYear] = useState<string | null>(availableYear[0] || "");
 
   // fetch county
   let [countyName, setcountyName] = useState<string[]>([]);
   let [getCounty, setgetCounty] = useState("" || "");
-  const handleCountyChange = (event: SelectChangeEvent) => {
-    const selectedValue = event.target.value;
+  const [inputCounty, setInputCounty] = useState("");
+  const handleCountyGetTown = (inputCounty: string) => {
+    const selectedValue = inputCounty;
     const selectedKey = countyCodes[countyName.indexOf(selectedValue)];
     setgetCounty(selectedValue);
     setgetTown(""); // Reset the townInput value to empty
     getAxiosTown(selectedKey);
   };
+
+  useEffect(() => {
+    if (inputCounty !== "") {
+      handleCountyGetTown(inputCounty);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputCounty]);
+
   // get as key
   let [countyCodes, setcountyCodes] = useState<string[]>([]);
-
   // fetch town
   let [townName, setTownName] = useState<string[]>([] || "");
   let [getTown, setgetTown] = useState("");
-  const handleTownChange = (event: SelectChangeEvent) => {
-    setgetTown(event.target.value);
-  };
+  const [inputTown, setInputTown] = useState("");
 
   const [loadingCharts, setLoadingCharts] = useState(false);
-  const loadingScreen = () => {
-    setLoadingCharts(true);
-  };
 
   const handleClick = (des: string) => {
-    getAxiosCharts(getYear, getCounty, getTown);
-    loadingScreen();
+    getAxiosCharts(getYear || "", getCounty || "", getTown || "");
+    setLoadingCharts(true);
+    setbtnSync(true);
+    const text = `${getYear}年 ${getCounty} ${getTown}`;
+    setResultText(text);
     setLoadingCharts(!loadingCharts);
     setTimeout(() => {
       getCallColCharts(true);
@@ -99,6 +108,8 @@ const DataRetriever = ({ des }: { des: string }) => {
   }, [loadingCharts]);
 
   const [btnAble, setbtnAble] = useState(true);
+  const [btnSync, setbtnSync] = useState(false);
+  const [resultText, setResultText] = useState("");
 
   let [householdOrdinTotalInt, sethouseholdOrdinTotalInt] = useState<string[]>(
     []
@@ -147,7 +158,7 @@ const DataRetriever = ({ des }: { des: string }) => {
     chart: {
       type: "column",
       backgroundColor: "transparent",
-      marginLeft: 60,
+      marginLeft: 50,
       marginRight: 10,
       spacingTop: 100,
       height: "600px",
@@ -462,11 +473,14 @@ const DataRetriever = ({ des }: { des: string }) => {
       setgetYear(data.slug?.[0]!);
       setgetCounty(data.slug?.[1]!);
       setgetTown(data.slug?.[2]!);
+      setbtnSync(true);
+      const text = `${getYear}年 ${getCounty} ${getTown}`;
+      setResultText(text);
       const selectedValue = data.slug?.[1]!;
       const selectedKey = countyCodes[countyName.indexOf(selectedValue)];
       getAxiosTown(selectedKey);
-      getAxiosCharts(getYear, getCounty, getTown);
-      loadingScreen();
+      getAxiosCharts(getYear || "", getCounty || "", getTown || "");
+      setLoadingCharts(true);
 
       if (loadingCharts) {
         const timer = setTimeout(() => {
@@ -487,9 +501,7 @@ const DataRetriever = ({ des }: { des: string }) => {
       <Head>
         <title>Kit Chan - DailyViewTest</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-        {/* <meta name="description" content="Generated by create next app" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />*/}
+        <meta name="description" content="Created by Kit Chan" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
@@ -521,89 +533,60 @@ const DataRetriever = ({ des }: { des: string }) => {
             </Typography>
             {/* Year */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-center pb-5">
-              <FormControl sx={{ m: 1, width: 80 }}>
-                <InputLabel id="yearInput" shrink>
-                  年份
-                </InputLabel>
-                <Select
-                  id="yearInput"
-                  label="年份"
-                  value={getYear}
-                  onChange={handleYearChange}
-                >
-                  {availableYear.map((theYear: string, index: number) => (
-                    <MenuItem key={index} value={theYear}>
-                      {theYear}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              {/* County */}
-              <FormControl sx={{ m: 1, minWidth: 200, md: "100%" }}>
-                <InputLabel id="countyInput" shrink>
-                  縣/市
-                </InputLabel>
-                <Select
-                  id="countyInput"
-                  label="縣/市"
-                  displayEmpty
-                  value={getCounty || ""}
-                  onChange={handleCountyChange}
-                  renderValue={(selected) => {
-                    if (!selected) {
-                      return (
-                        <Typography className="text-gray-400">
-                          請選擇 縣/市
-                        </Typography>
-                      );
-                    }
-                    return selected;
-                  }}
-                  inputProps={{ "aria-label": "Without label" }}
-                  className="text-left not-italic"
-                >
-                  {countyName.map((county: string, index: number) => (
-                    <MenuItem key={countyCodes[index]} value={county}>
-                      {county}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              {/* Town */}
-              <FormControl sx={{ m: 1, minWidth: 200, md: "100%" }}>
-                <InputLabel id="townInput" shrink>
-                  區
-                </InputLabel>
-                <Select
-                  id="townInput"
-                  label="區"
-                  displayEmpty
-                  value={getTown || ""}
-                  onChange={handleTownChange}
-                  renderValue={(selected) => {
-                    if (!selected) {
-                      return (
-                        <Typography className="text-gray-400">
-                          請先選擇 縣/市
-                        </Typography>
-                      );
-                    }
-                    return selected;
-                  }}
-                  inputProps={{ "aria-label": "Without label" }}
-                  className="text-left not-italic"
-                  disabled={!getCounty} // Disable townInput when countyInput is empty
-                >
-                  {townName.map((townName: string, index: number) => (
-                    <MenuItem key={index} value={townName}>
-                      {townName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Autocomplete
+                value={getYear}
+                onChange={(event: any, newValue: string | null) => {
+                  setgetYear(newValue || "");
+                }}
+                inputValue={inputYear}
+                onInputChange={(event, newInputValue) => {
+                  setInputYear(newInputValue);
+                }}
+                id="autoYear"
+                options={availableYear}
+                // sx={{ width: 300 }}
+                renderInput={(params) => <TextField {...params} label="年份" />}
+                className="m-1 w-[110px] mb-2"
+              />
+
+              <Autocomplete
+                value={getCounty}
+                onChange={(event: any, newValue: string | null) => {
+                  setgetCounty(newValue || "");
+                }}
+                inputValue={inputCounty}
+                onInputChange={(event, newInputValue) => {
+                  setInputCounty(newInputValue);
+                }}
+                id="autoCounty"
+                options={countyName}
+                // sx={{ width: 300 }}
+                renderInput={(params) => (
+                  <TextField {...params} label="縣/市" />
+                )}
+                className="m-1 min-w-[200px] md:w-[200px] mb-2"
+              />
+
+              <Autocomplete
+                value={getTown}
+                onChange={(event: any, newValue: string | null) => {
+                  setgetTown(newValue || "");
+                }}
+                inputValue={inputTown}
+                onInputChange={(event, newInputValue) => {
+                  handleCountyGetTown(inputCounty);
+                  setInputTown(newInputValue);
+                }}
+                id="autoTown"
+                options={townName}
+                // sx={{ width: 300 }}
+                renderInput={(params) => <TextField {...params} label="區" />}
+                className="m-1 min-w-[200px] md:w-[200px] mb-2"
+              />
+
               <Button
                 variant="contained"
-                className=" p-3 ml-2 mr-2 my-3 w-[fit] text-base md:w-[7%]"
+                className=" p-3 mx-1 mt-2 mb-5 w-[fit] text-base md:w-[8%]"
                 disabled={btnAble}
                 onClick={() => handleClick(des)}
                 sx={{
@@ -663,41 +646,39 @@ const DataRetriever = ({ des }: { des: string }) => {
                   </Modal>
                 </>
               )}
-              {/* {!btnAble && (
-              )} */}
-              {/* {getYear}年 {getCounty} {getTown} */}
-              {callColCharts && (
+              {callColCharts || callPieCharts ? (
                 <>
-                  <div>
-                    {getYear}年 {getCounty} {getTown}
-                  </div>
-                  <div className="flex justify-center py-10 inset-x-0">
-                    <div className="w-[100%] md:w-[70%] inset-x-0">
-                      <HighchartsReact
-                        highcharts={Highcharts}
-                        options={optionsCol}
-                        containerProps={{
-                          style: {
-                            height: "600px",
-                            width: "100%",
-                          },
-                        }}
-                      />
+                  <Typography variant="h4">{resultText}</Typography>
+                  <div className="flex justify-center py-6 inset-x-0">
+                    <div className="w-[100%] md:w-[70%] inset-x-0 m-10">
+                      <div>
+                        <HighchartsReact
+                          highcharts={Highcharts}
+                          options={optionsCol}
+                          containerProps={{
+                            style: {
+                              height: "600px",
+                              width: "100%",
+                            },
+                          }}
+                        />
+                      </div>
+                      <div className="pt-16">
+                        <HighchartsReact
+                          highcharts={Highcharts}
+                          options={optionsPie}
+                          containerProps={{
+                            style: {
+                              height: "600px",
+                              width: "100%",
+                            },
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </>
-              )}
-              {callPieCharts && (
-                <div className="flex justify-center py-10">
-                  <div className="w-[100%] md:w-[70%]">
-                    <HighchartsReact
-                      highcharts={Highcharts}
-                      options={optionsPie}
-                      containerProps={{ style: { height: "600px" } }}
-                    />
-                  </div>
-                </div>
-              )}
+              ) : null}
             </div>
           </Typography>
         </Box>
