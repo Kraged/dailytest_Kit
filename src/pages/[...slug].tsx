@@ -4,7 +4,6 @@ import { createTheme } from "@mui/material/styles";
 
 import DataRetriever from "./DataRetriever";
 
-// Define the types for the slug array
 type SlugProps = {
   slug: string[];
 };
@@ -15,10 +14,9 @@ const figmaTheme = createTheme({
     },
   },
 });
-// Define the component
+
 const SlugPage: React.FC<SlugProps> = ({ slug }) => {
   return (
-    // Your JSX/HTML code
     <>
       <DataRetriever des="" />
     </>
