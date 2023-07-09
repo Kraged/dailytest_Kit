@@ -71,30 +71,36 @@ const DataRetriever = ({ des }: { des: string }) => {
 
   const [loadingCharts, setLoadingCharts] = useState(false);
 
-  const handleClick = (des: string) => {
-    getAxiosCharts(getYear || "", getCounty || "", getTown || "");
-    setLoadingCharts(true);
-    setbtnSync(true);
-    const text = `${getYear}年 ${getCounty} ${getTown}`;
-    setResultText(text);
-    setLoadingCharts(!loadingCharts);
-    setTimeout(() => {
-      getCallColCharts(true);
-      getCallPieCharts(true);
-      const baseUrl = window.location.origin;
-      const url = `${baseUrl}/${getYear}/${getCounty}/${getTown}`;
-      router.push(
-        {
-          pathname: router.pathname,
-          query: {
-            year: getYear,
-            county: getCounty,
-            town: getTown,
+  const handleClick = () => {
+    if (getYear && getCounty && getTown) {
+      getAxiosCharts(getYear || "", getCounty || "", getTown || "");
+      setLoadingCharts(true);
+      setbtnSync(true);
+      const text = `${getYear}年 ${getCounty} ${getTown}`;
+      setResultText(text);
+      setLoadingCharts(!loadingCharts);
+      setTimeout(() => {
+        setCallColCharts(true);
+        setCallPieCharts(true);
+        const baseUrl = window.location.origin;
+        const url = `${baseUrl}/${getYear}/${getCounty}/${getTown}`;
+        router.push(
+          {
+            pathname: router.pathname,
+            query: {
+              year: getYear,
+              county: getCounty,
+              town: getTown,
+            },
           },
-        },
-        url
-      );
-    }, 1400);
+          url
+        );
+      }, 1400);
+    } else {
+      setResultText("請先選擇 年度、縣/市、區");
+      setCallColCharts(false);
+      setCallPieCharts(false);
+    }
   };
 
   useEffect(() => {
@@ -265,8 +271,8 @@ const DataRetriever = ({ des }: { des: string }) => {
     },
   });
 
-  const [callColCharts, getCallColCharts] = useState(false);
-  const [callPieCharts, getCallPieCharts] = useState(false);
+  const [callColCharts, setCallColCharts] = useState(false);
+  const [callPieCharts, setCallPieCharts] = useState(false);
   const updateOptions = (
     ordinSumM: number,
     ordinSumF: number,
@@ -490,8 +496,8 @@ const DataRetriever = ({ des }: { des: string }) => {
         return () => clearTimeout(timer);
       }
       //   setLoadingCharts(!loadingCharts);
-      getCallColCharts(true);
-      getCallPieCharts(true);
+      setCallColCharts(true);
+      setCallPieCharts(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query.slug, getCounty, getTown]);
@@ -533,62 +539,129 @@ const DataRetriever = ({ des }: { des: string }) => {
             </Typography>
             {/* Year */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-center pb-5">
-              <Autocomplete
-                value={getYear}
-                onChange={(event: any, newValue: string | null) => {
-                  setgetYear(newValue || "");
-                }}
-                inputValue={inputYear}
-                onInputChange={(event, newInputValue) => {
-                  setInputYear(newInputValue);
-                }}
-                id="autoYear"
-                options={availableYear}
-                // sx={{ width: 300 }}
-                renderInput={(params) => <TextField {...params} label="年份" />}
-                className="m-1 w-[110px] mb-2"
-              />
+              <FormControl sx={{ minWidth: 80, md: "100%", mt: 1 }}>
+                <InputLabel
+                  id="countyInputLabel"
+                  shrink
+                  sx={{
+                    paddingTop: "8px",
+                    paddingBottom: "4px",
+                    paddingX: "10px",
+                    backgroundColor: "white",
+                  }}
+                >
+                  年度
+                </InputLabel>
+                <Autocomplete
+                  value={getYear}
+                  noOptionsText="查無資料"
+                  onChange={(event: any, newValue: string | null) => {
+                    setgetYear(newValue || "");
+                  }}
+                  inputValue={inputYear}
+                  onInputChange={(event, newInputValue) => {
+                    setInputYear(newInputValue);
+                  }}
+                  id="autoYear"
+                  options={availableYear}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="年度"
+                      InputProps={{
+                        ...params.InputProps,
+                      }}
+                    />
+                  )}
+                  className="m-1 w-[110px] mb-2"
+                />
+              </FormControl>
 
-              <Autocomplete
-                value={getCounty}
-                onChange={(event: any, newValue: string | null) => {
-                  setgetCounty(newValue || "");
-                }}
-                inputValue={inputCounty}
-                onInputChange={(event, newInputValue) => {
-                  setInputCounty(newInputValue);
-                }}
-                id="autoCounty"
-                options={countyName}
-                // sx={{ width: 300 }}
-                renderInput={(params) => (
-                  <TextField {...params} label="縣/市" />
-                )}
-                className="m-1 min-w-[200px] md:w-[200px] mb-2"
-              />
+              <FormControl sx={{ minWidth: 200, md: "100%", mt: 1 }}>
+                <InputLabel
+                  id="countyInputLabel"
+                  shrink
+                  sx={{
+                    paddingTop: "8px",
+                    paddingBottom: "4px",
+                    // marginLeft: "10px",
+                    paddingX: "10px",
+                    backgroundColor: "white",
+                  }}
+                >
+                  縣/市
+                </InputLabel>
+                <Autocomplete
+                  value={getCounty}
+                  noOptionsText="查無資料"
+                  onChange={(event: any, newValue: string | null) => {
+                    setgetCounty(newValue || "");
+                  }}
+                  inputValue={inputCounty}
+                  onInputChange={(event, newInputValue) => {
+                    setInputCounty(newInputValue);
+                  }}
+                  id="autoCounty"
+                  options={countyName}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="請選擇 區"
+                      InputProps={{
+                        ...params.InputProps,
+                      }}
+                    />
+                  )}
+                  className="m-1 min-w-[200px] md:w-[200px] mb-2"
+                />
+              </FormControl>
 
-              <Autocomplete
-                value={getTown}
-                onChange={(event: any, newValue: string | null) => {
-                  setgetTown(newValue || "");
-                }}
-                inputValue={inputTown}
-                onInputChange={(event, newInputValue) => {
-                  handleCountyGetTown(inputCounty);
-                  setInputTown(newInputValue);
-                }}
-                id="autoTown"
-                options={townName}
-                // sx={{ width: 300 }}
-                renderInput={(params) => <TextField {...params} label="區" />}
-                className="m-1 min-w-[200px] md:w-[200px] mb-2"
-              />
+              <FormControl sx={{ minWidth: 200, md: "100%", mt: 1 }}>
+                <InputLabel
+                  id="countyInputLabel"
+                  shrink
+                  sx={{
+                    paddingTop: "8px",
+                    paddingBottom: "4px",
+                    paddingX: "10px",
+                    backgroundColor: "white",
+                  }}
+                >
+                  區
+                </InputLabel>
+                <Autocomplete
+                  value={getTown}
+                  noOptionsText="查無資料"
+                  onChange={(event: any, newValue: string | null) => {
+                    setgetTown(newValue || "");
+                  }}
+                  inputValue={inputTown}
+                  onInputChange={(event, newInputValue) => {
+                    handleCountyGetTown(inputCounty);
+                    setInputTown(newInputValue);
+                  }}
+                  id="autoTown"
+                  options={townName}
+                  // sx={{ width: 300 }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="請先選擇 縣/市"
+                      InputProps={{
+                        ...params.InputProps,
+                      }}
+                      disabled={!getCounty}
+                    />
+                  )}
+                  className="m-1 min-w-[200px] md:w-[200px] mb-2"
+                />
+              </FormControl>
 
               <Button
                 variant="contained"
-                className=" p-3 mx-1 mt-2 mb-5 w-[fit] text-base md:w-[8%]"
+                className=" p-3 mx-1 mt-2 mb-2 w-[fit] text-base md:w-[8%]"
                 disabled={btnAble}
-                onClick={() => handleClick(des)}
+                onClick={() => handleClick()}
                 sx={{
                   color: "white",
                   backgroundColor: "#1565c0",
@@ -646,9 +719,9 @@ const DataRetriever = ({ des }: { des: string }) => {
                   </Modal>
                 </>
               )}
+              <Typography variant="h4">{resultText}</Typography>
               {callColCharts || callPieCharts ? (
                 <>
-                  <Typography variant="h4">{resultText}</Typography>
                   <div className="flex justify-center py-6 inset-x-0">
                     <div className="w-[100%] md:w-[70%] inset-x-0 m-10">
                       <div>
