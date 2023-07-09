@@ -20,7 +20,7 @@ import { HighchartsReact } from "highcharts-react-official";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
-import { parseString } from "xml2js";
+import { parseString, parseStringPromise } from "xml2js";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -35,42 +35,239 @@ const figmaTheme = createTheme({
 });
 
 const DataRetriever = ({ des }: { des: string }) => {
-  // fetch year
-  const availableYear = ["106", "107", "108", "109", "110", "111"];
+  const router = useRouter();
   const [inputYear, setInputYear] = useState("");
-  const [getYear, setgetYear] = useState<string | null>(availableYear[0] || "");
-
-  // fetch county
-  let [countyName, setcountyName] = useState<string[]>([]);
-  let [getCounty, setgetCounty] = useState("" || "");
   const [inputCounty, setInputCounty] = useState("");
+  const [inputTown, setInputTown] = useState("");
+  const [getYear, setgetYear] = useState<string | null>(null);
+  const [getCounty, setgetCounty] = useState("");
+  const [getTown, setgetTown] = useState("");
+  const [countyName, setcountyName] = useState<string[]>([]);
+  const [countyCodes, setcountyCodes] = useState<string[]>([]);
+  const [townName, setTownName] = useState<string[]>([]);
+  const [loadingCharts, setLoadingCharts] = useState(false);
+  const [btnAble, setbtnAble] = useState(true);
+  const [btnSync, setbtnSync] = useState(false);
+  const [resultText, setResultText] = useState("");
+  const [controlDisable, setControlDisable] = useState(false);
+  const [householdOrdinIntM, sethouseholdOrdinIntM] = useState<string[]>([]);
+  const [householdOrdinIntF, sethouseholdOrdinIntF] = useState<string[]>([]);
+  const [householdSingleIntM, sethouseholdSingleIntM] = useState<string[]>([]);
+  const [householdSingleIntF, sethouseholdSingleIntF] = useState<string[]>([]);
+  const [householdOrdinTotalInt, sethouseholdOrdinTotalInt] = useState<
+    string[]
+  >([]);
+  const [householdSingleTotalInt, sethouseholdSingleTotalInt] = useState<
+    string[]
+  >([]);
+  const [householdOrdinSumM, sethouseholdOrdinSumM] = useState(0);
+  const [householdOrdinSumF, sethouseholdOrdinSumF] = useState(0);
+  const [householdSingleSumM, sethouseholdSingleSumM] = useState(0);
+  const [householdSingleSumF, sethouseholdSingleSumF] = useState(0);
+  const [householdOrdinTotalSum, sethouseholdOrdinTotalSum] = useState(0);
+  const [householdSingleTotalSum, sethouseholdSingleTotalSum] = useState(0);
+  const [callColCharts, setCallColCharts] = useState(false);
+  const [callPieCharts, setCallPieCharts] = useState(false);
+
+  const availableYear = ["106", "107", "108", "109", "110", "111"];
+
+  useEffect(() => {
+    console.log("useEffect for Axios ListCounty: ", callColCharts);
+    axios
+      .get("https://api.nlsc.gov.tw/other/ListCounty")
+      .then((response) => {
+        const xmlData = response.data;
+        parseString(xmlData, (err, result) => {
+          if (err) {
+            console.error("Error parsing XML:", err);
+            return;
+          }
+          const countyItems = result.countyItems.countyItem;
+          const countyCodes = countyItems.map(
+            (item: any) => item.countycode[0]
+          );
+          const countyNames = countyItems.map(
+            (item: any) => item.countyname[0]
+          );
+          setcountyName(countyNames);
+          setcountyCodes(countyCodes);
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching XML ListCounty data:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    console.log("useEffect for inputCounty: ", callColCharts);
+    if (inputCounty !== "" && fin !== "") {
+      handleCountyGetTown(inputCounty);
+    }
+  }, [inputCounty]);
+
   const handleCountyGetTown = (inputCounty: string) => {
     const selectedValue = inputCounty;
     const selectedKey = countyCodes[countyName.indexOf(selectedValue)];
     setgetCounty(selectedValue);
-    setgetTown("");
+    if (fin == "") {
+      setgetTown("");
+      getAxiosTown(selectedKey);
+    }
     getAxiosTown(selectedKey);
   };
 
+  const getAxiosTown = (selectedCountyCodes: string) => {
+    axios
+      .get(`https://api.nlsc.gov.tw/other/ListTown/${selectedCountyCodes}`)
+      .then((response) => {
+        const xmlData = response.data;
+        parseString(xmlData, (err, result) => {
+          if (err) {
+            console.error("Error parsing XML:", err);
+            return;
+          }
+          const townItems = result?.townItems?.townItem;
+          if (townItems && townItems.length > 0) {
+            const townNames = townItems.map((item: any) => item.townname[0]);
+            setTownName(townNames);
+          } else {
+            setTownName([]);
+          }
+        });
+      });
+  };
+
+  const [fin, setfin] = useState("");
   useEffect(() => {
-    if (inputCounty !== "") {
-      handleCountyGetTown(inputCounty);
+    console.log("useEffect for slug: ", callColCharts);
+    if (router.query.slug && fin === "") {
+      const { slug } = router.query;
+      const year = slug?.[0] || "";
+      const county = slug?.[1] || "";
+      const town = slug?.[2] || "";
+
+      setgetYear(year);
+      setgetCounty(county);
+      setgetTown(town);
+      setfin(town);
+      const text = `${year}年 ${county} ${town}`;
+      setResultText(text);
+      setCallColCharts(true);
+      setCallPieCharts(true);
+
+      getAxiosCharts(year, county, town);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputCounty]);
+  }, [router.query.slug]);
 
-  // get as key
-  let [countyCodes, setcountyCodes] = useState<string[]>([]);
-  // fetch town
-  let [townName, setTownName] = useState<string[]>([] || "");
-  let [getTown, setgetTown] = useState("");
-  const [inputTown, setInputTown] = useState("");
+  const getAxiosCharts = (year: string, county: string, town: string) => {
+    axios
+      .get(
+        `https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP019/${year}?COUNTY=${county}&TOWN=${town}`
+      )
+      .then((response) => {
+        const responseData = response.data.responseData;
+        sethouseholdOrdinIntM(
+          responseData.map(
+            (item: { household_ordinary_m: string }) =>
+              item.household_ordinary_m
+          )
+        );
+        sethouseholdOrdinIntF(
+          responseData.map(
+            (item: { household_ordinary_f: string }) =>
+              item.household_ordinary_f
+          )
+        );
+        sethouseholdSingleIntM(
+          responseData.map(
+            (item: { household_single_m: string }) => item.household_single_m
+          )
+        );
+        sethouseholdSingleIntF(
+          responseData.map(
+            (item: { household_single_f: string }) => item.household_single_f
+          )
+        );
+        sethouseholdOrdinTotalInt(
+          responseData.map(
+            (item: { household_ordinary_total: string }) =>
+              item.household_ordinary_total
+          )
+        );
+        sethouseholdSingleTotalInt(
+          responseData.map(
+            (item: { household_single_total: string }) =>
+              item.household_single_total
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Error fetching getAxiosCharts data:", error);
+      });
+  };
 
-  const [loadingCharts, setLoadingCharts] = useState(false);
+  useEffect(() => {
+    console.log("useEffect for Calculating sum: ", callColCharts);
+    if (householdOrdinIntM.length > 0) {
+      sethouseholdOrdinSumM(
+        householdOrdinIntM.reduce(
+          (sum: number, item: string) => sum + parseInt(item),
+          0
+        )
+      );
+    }
+    if (householdOrdinIntF.length > 0) {
+      sethouseholdOrdinSumF(
+        householdOrdinIntF.reduce(
+          (sum: number, item: string) => sum + parseInt(item),
+          0
+        )
+      );
+    }
+    if (householdSingleIntM.length > 0) {
+      sethouseholdSingleSumM(
+        householdSingleIntM.reduce(
+          (sum: number, item: string) => sum + parseInt(item),
+          0
+        )
+      );
+    }
+    if (householdSingleIntF.length > 0) {
+      sethouseholdSingleSumF(
+        householdSingleIntF.reduce(
+          (sum: number, item: string) => sum + parseInt(item),
+          0
+        )
+      );
+    }
+    if (householdOrdinTotalInt.length > 0) {
+      sethouseholdOrdinTotalSum(
+        householdOrdinTotalInt.reduce(
+          (sum: number, item: string) => sum + parseInt(item),
+          0
+        )
+      );
+    }
+    if (householdSingleTotalInt.length > 0) {
+      sethouseholdSingleTotalSum(
+        householdSingleTotalInt.reduce(
+          (sum: number, item: string) => sum + parseInt(item),
+          0
+        )
+      );
+    }
+  }, [
+    householdOrdinIntM,
+    householdOrdinIntF,
+    householdSingleIntM,
+    householdSingleIntF,
+    householdOrdinTotalInt,
+    householdSingleTotalInt,
+  ]);
 
   const handleClick = () => {
     if (getYear && getCounty && getTown) {
-      getAxiosCharts(getYear || "", getCounty || "", getTown || "");
+      getAxiosCharts(getYear, getCounty, getTown);
       setLoadingCharts(true);
       setbtnSync(true);
       const text = `${getYear}年 ${getCounty} ${getTown}`;
@@ -101,58 +298,93 @@ const DataRetriever = ({ des }: { des: string }) => {
   };
 
   useEffect(() => {
+    console.log("useEffect for loadingCharts: ", callColCharts);
     if (loadingCharts) {
       const timer = setTimeout(() => {
         setLoadingCharts(false);
       }, 1000);
-
       return () => clearTimeout(timer);
     }
   }, [loadingCharts]);
 
-  const [btnAble, setbtnAble] = useState(true);
-  const [btnSync, setbtnSync] = useState(false);
-  const [resultText, setResultText] = useState("");
+  useEffect(() => {
+    console.log("useEffect for checking lengths: ", callColCharts);
+    getAxiosTown(countyCodes[countyName.indexOf(getCounty)]);
+    if (getCounty.length !== 0 && getTown.length !== 0) {
+      setbtnAble(false);
+    }
+    if (getYear?.length === 0 && getCounty.length > 0) {
+      setControlDisable(false);
+    }
+    if (!getCounty || !getYear) {
+      setControlDisable(false);
+      //   setCallColCharts(false);
+      //   setCallPieCharts(false);
+      setbtnAble(true);
+      setResultText("");
+    } else {
+      setControlDisable(true);
+    }
+    if (getCounty) {
+      setControlDisable(true);
+    }
+  }, [getCounty, getYear, getTown, countyCodes, countyName]);
 
-  let [householdOrdinTotalInt, sethouseholdOrdinTotalInt] = useState<string[]>(
-    []
-  );
-  let [householdSingleTotalInt, sethouseholdSingleTotalInt] = useState<
-    string[]
-  >([]);
-  let [householdSingleIntM, sethouseholdSingleIntM] = useState<string[]>([]);
-  let [householdSingleIntF, sethouseholdSingleIntF] = useState<string[]>([]);
-  let [householdOrdinIntM, sethouseholdOrdinIntM] = useState<string[]>([]);
-  let [householdOrdinIntF, sethouseholdOrdinIntF] = useState<string[]>([]);
+  useEffect(() => {
+    console.log("useEffect for updateOptions: ", callColCharts);
+    updateOptions(
+      householdOrdinSumM,
+      householdOrdinSumF,
+      householdSingleSumM,
+      householdSingleSumF,
+      householdOrdinTotalSum,
+      householdSingleTotalSum
+    );
+  }, [
+    householdOrdinSumM,
+    householdOrdinSumF,
+    householdSingleSumM,
+    householdSingleSumF,
+    householdOrdinTotalSum,
+    householdSingleTotalSum,
+  ]);
 
-  let [householdOrdinTotalSum, sethouseholdOrdinTotalSum] = useState(0);
-  let [householdSingleTotalSum, sethouseholdSingleTotalSum] = useState(0);
-  let [householdSingleSumM, sethouseholdSingleSumM] = useState(0);
-  let [householdSingleSumF, sethouseholdSingleSumF] = useState(0);
-  let [householdOrdinSumM, sethouseholdOrdinSumM] = useState(0);
-  let [householdOrdinSumF, sethouseholdOrdinSumF] = useState(0);
-
-  const getAxiosTown = (selectedCountyCodes: string) => {
-    axios
-      .get(`https://api.nlsc.gov.tw/other/ListTown/${selectedCountyCodes}`)
-      .then((response) => {
-        const xmlData = response.data;
-        parseString(xmlData, (err, result) => {
-          if (err) {
-            console.error("Error parsing XML:", err);
-            return;
-          }
-          try {
-            const townItem = result.townItems.townItem;
-            townName = townItem.map((item: any) => item.townname[0]);
-            setTownName(townName);
-          } catch {
-            setTownName([""]);
-          }
-        });
-      });
+  const updateOptions = (
+    ordinSumM: number,
+    ordinSumF: number,
+    ordinTotal: number,
+    singleSumM: number,
+    singleSumF: number,
+    singleTotal: number
+  ) => {
+    setOptionsCol((prevOptions) => ({
+      ...prevOptions,
+      series: [
+        {
+          name: "男性",
+          data: [ordinSumM, singleSumM],
+          color: "#7d5fb2",
+        },
+        {
+          name: "女性",
+          data: [ordinSumF, singleSumF],
+          color: "#c29fff",
+        },
+      ],
+    }));
+    setOptionsPie((prevOptions) => ({
+      ...prevOptions,
+      series: [
+        {
+          name: "戶數統計",
+          data: [
+            { name: "共同生活", y: ordinTotal },
+            { name: "獨立生活", y: singleTotal },
+          ],
+        },
+      ],
+    }));
   };
-
   const [optionsCol, setOptionsCol] = useState({
     chart: {
       type: "column",
@@ -217,7 +449,6 @@ const DataRetriever = ({ des }: { des: string }) => {
       },
     },
   });
-
   const [optionsPie, setOptionsPie] = useState({
     chart: {
       type: "pie",
@@ -255,267 +486,10 @@ const DataRetriever = ({ des }: { des: string }) => {
             fontSize: "20px",
           },
         },
-
         showInLegend: true,
       },
     },
   });
-
-  const [callColCharts, setCallColCharts] = useState(false);
-  const [callPieCharts, setCallPieCharts] = useState(false);
-  const updateOptions = (
-    ordinSumM: number,
-    ordinSumF: number,
-    ordinTotal: number,
-    singleSumM: number,
-    singleSumF: number,
-    singleTotal: number
-  ) => {
-    setOptionsCol((prevOptions) => ({
-      ...prevOptions,
-      series: [
-        {
-          name: "男性",
-          data: [ordinSumM, singleSumM],
-          color: "#7d5fb2",
-        },
-        {
-          name: "女性",
-          data: [ordinSumF, singleSumF],
-          color: "#c29fff",
-        },
-      ],
-    }));
-    setOptionsPie((prevOptions) => ({
-      ...prevOptions,
-      series: [
-        {
-          name: "戶數統計",
-          data: [
-            { name: "共同生活", y: ordinTotal },
-            { name: "獨立生活", y: singleTotal },
-          ],
-        },
-      ],
-    }));
-  };
-
-  const getAxiosCharts = (
-    getYear: string,
-    getCounty: string,
-    getTown: string
-  ) => {
-    axios
-      .get(
-        `https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP019/${getYear}?COUNTY=${getCounty}&TOWN=${getTown}`
-      )
-      .then((response) => {
-        const responseData = response.data.responseData;
-        sethouseholdOrdinIntM(
-          responseData.map(
-            (item: { household_ordinary_m: string }) =>
-              item.household_ordinary_m
-          )
-        );
-        sethouseholdOrdinIntF(
-          responseData.map(
-            (item: { household_ordinary_f: string }) =>
-              item.household_ordinary_f
-          )
-        );
-        sethouseholdSingleIntM(
-          responseData.map(
-            (item: { household_single_m: string }) => item.household_single_m
-          )
-        );
-        sethouseholdSingleIntF(
-          responseData.map(
-            (item: { household_single_f: string }) => item.household_single_f
-          )
-        );
-        sethouseholdOrdinTotalInt(
-          responseData.map(
-            (item: { household_ordinary_total: string }) =>
-              item.household_ordinary_total
-          )
-        );
-        sethouseholdSingleTotalInt(
-          responseData.map(
-            (item: { household_single_total: string }) =>
-              item.household_single_total
-          )
-        );
-      })
-      .catch((error) => {
-        console.error("Error fetching getAxiosCharts data:", error);
-      });
-  };
-
-  useEffect(() => {
-    updateOptions(
-      householdOrdinSumM,
-      householdOrdinSumF,
-      householdSingleSumM,
-      householdSingleSumF,
-      householdOrdinTotalSum,
-      householdSingleTotalSum
-    );
-  }, [
-    householdOrdinSumM,
-    householdOrdinSumF,
-    householdSingleSumM,
-    householdSingleSumF,
-    householdOrdinTotalSum,
-    householdSingleTotalSum,
-  ]);
-
-  const countyCodesRef = useRef<string[]>([]);
-  const countyNameRef = useRef<string[]>([]);
-  useEffect(() => {
-    axios
-      .get("https://api.nlsc.gov.tw/other/ListCounty")
-      .then((response) => {
-        const xmlData = response.data;
-        parseString(xmlData, (err, result) => {
-          if (err) {
-            console.error("Error parsing XML:", err);
-            return;
-          }
-          const countyItems = result.countyItems.countyItem;
-          countyCodesRef.current = countyItems.map(
-            (item: any) => item.countycode[0]
-          );
-          countyNameRef.current = countyItems.map(
-            (item: any) => item.countyname[0]
-          );
-          setcountyName((prevNames) => countyNameRef.current);
-          setcountyCodes((prevCodes) => countyCodesRef.current);
-        });
-      })
-      .catch((error) => {
-        console.error("Error fetching XML ListCounty data:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (householdOrdinIntM.length > 0) {
-      sethouseholdOrdinSumM(
-        householdOrdinIntM.reduce((sum: number, item: string) => {
-          return (sum += parseInt(item));
-        }, 0)
-      );
-    }
-    if (householdOrdinIntF.length > 0) {
-      sethouseholdOrdinSumF(
-        householdOrdinIntF.reduce((sum: number, item: string) => {
-          return (sum += parseInt(item));
-        }, 0)
-      );
-    }
-    if (householdSingleIntM.length > 0) {
-      sethouseholdSingleSumM(
-        householdSingleIntM.reduce((sum: number, item: string) => {
-          return (sum += parseInt(item));
-        }, 0)
-      );
-    }
-    if (householdSingleIntF.length > 0) {
-      sethouseholdSingleSumF(
-        householdSingleIntF.reduce((sum: number, item: string) => {
-          return (sum += parseInt(item));
-        }, 0)
-      );
-    }
-    if (householdOrdinTotalInt.length > 0) {
-      sethouseholdOrdinTotalSum(
-        householdOrdinTotalInt.reduce((sum: number, item: string) => {
-          return (sum += parseInt(item));
-        }, 0)
-      );
-    }
-    if (householdSingleTotalInt.length > 0) {
-      sethouseholdSingleTotalSum(
-        householdSingleTotalInt.reduce((sum: number, item: string) => {
-          return (sum += parseInt(item));
-        }, 0)
-      );
-    }
-  }, [
-    btnAble,
-    householdOrdinIntF,
-    householdOrdinIntM,
-    householdOrdinSumF,
-    householdOrdinSumM,
-    householdOrdinTotalInt,
-    householdOrdinTotalSum,
-    householdSingleIntF,
-    householdSingleIntM,
-    householdSingleSumF,
-    householdSingleSumM,
-    householdSingleTotalInt,
-    householdSingleTotalSum,
-  ]);
-
-  const router = useRouter();
-  const data = router.query;
-  const [controlDisable, setControlDisable] = useState(false);
-
-  useEffect(() => {
-    if (getCounty.length !== 0 && getTown.length !== 0) {
-      setbtnAble(false);
-    }
-    if (getYear?.length === 0 && getCounty.length > 0) {
-      getAxiosTown(countyCodes[countyName.indexOf(getCounty)]);
-      setControlDisable(false);
-    }
-    if (!getCounty || !getYear) {
-      setTownName([""]);
-      setControlDisable(false);
-      setCallColCharts(false);
-      setCallPieCharts(false);
-      setbtnAble(true);
-      setResultText("");
-    } else {
-      setControlDisable(true);
-    }
-    if (getCounty) {
-      setControlDisable(true);
-    }
-    if (router.query.slug) {
-      setgetYear(data.slug?.[0]!);
-      setgetCounty(data.slug?.[1]!);
-      setgetTown(data.slug?.[2]!);
-      setbtnSync(true);
-      const text = `${getYear}年 ${getCounty} ${getTown}`;
-      setResultText(text);
-      const selectedValue = data.slug?.[1]!;
-      const selectedKey = countyCodes[countyName.indexOf(selectedValue)];
-      getAxiosTown(selectedKey);
-      getAxiosCharts(getYear || "", getCounty || "", getTown || "");
-      setLoadingCharts(true);
-
-      if (loadingCharts) {
-        const timer = setTimeout(() => {
-          setLoadingCharts(false);
-        }, 1000);
-
-        return () => clearTimeout(timer);
-      }
-      setCallColCharts(true);
-      setCallPieCharts(true);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    router.query.slug,
-    getCounty,
-    getYear,
-    getTown,
-    setControlDisable,
-    setbtnAble,
-    inputYear,
-    inputCounty,
-  ]);
 
   return (
     <>
@@ -620,11 +594,19 @@ const DataRetriever = ({ des }: { des: string }) => {
                   onChange={(event: any, newValue: string | null) => {
                     setgetCounty(newValue || "");
                     setInputTown("");
+                    setgetTown("");
+                    if (newValue === "" && newValue) {
+                      setInputTown("");
+                      setgetTown("");
+                    }
                   }}
                   inputValue={inputCounty}
                   onInputChange={(event, newInputValue) => {
                     setInputCounty(newInputValue);
-                    setInputTown("");
+                    if (newInputValue === "" && newInputValue) {
+                      setInputTown("");
+                      setgetTown("");
+                    }
                   }}
                   id="autoCounty"
                   options={countyName}
@@ -664,11 +646,12 @@ const DataRetriever = ({ des }: { des: string }) => {
                   onInputChange={(event, newInputValue) => {
                     handleCountyGetTown(inputCounty);
                     setInputTown(newInputValue);
-                    if (newInputValue === "" && getCounty) {
+                    if (newInputValue === "" && newInputValue) {
                       setCallColCharts(false);
                       setCallPieCharts(false);
                       setbtnAble(true);
                       setResultText("");
+                      setgetTown("");
                     }
                   }}
                   id="autoTown"
