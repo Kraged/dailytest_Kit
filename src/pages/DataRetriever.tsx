@@ -469,7 +469,6 @@ const DataRetriever = ({ des }: { des: string }) => {
       setControlDisable(false);
     }
     if (!getCounty || !getYear) {
-      //   setgetTown("");
       setTownName([""]);
       setControlDisable(false);
       setCallColCharts(false);
