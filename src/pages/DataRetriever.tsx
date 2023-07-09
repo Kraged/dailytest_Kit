@@ -11,10 +11,7 @@ import {
   TextField,
   Autocomplete,
   InputLabel,
-  MenuItem,
   Modal,
-  Select,
-  SelectChangeEvent,
   Toolbar,
 } from "@mui/material";
 import axios from "axios";
@@ -140,7 +137,6 @@ const DataRetriever = ({ des }: { des: string }) => {
       .get(`https://api.nlsc.gov.tw/other/ListTown/${selectedCountyCodes}`)
       .then((response) => {
         const xmlData = response.data;
-        // Parse the XML data into a JavaScript object
         parseString(xmlData, (err, result) => {
           if (err) {
             console.error("Error parsing XML:", err);
@@ -244,9 +240,6 @@ const DataRetriever = ({ des }: { des: string }) => {
         data: [
           { name: "hi", y: 0 },
           { name: "bye", y: 88 },
-
-          //   [householdOrdinTotalSum.toString(), 123],
-          //   [householdSingleTotalSum.toString(), 456],
         ],
       },
     ],
@@ -257,7 +250,7 @@ const DataRetriever = ({ des }: { des: string }) => {
       pie: {
         allowPointSelect: true,
         cursor: "pointer",
-        colors: ["#626eb2", "#a3b1ff"], // Customize the colors here
+        colors: ["#626eb2", "#a3b1ff"],
         dataLabels: {
           enabled: true,
           format: "{point.y}",
@@ -450,7 +443,6 @@ const DataRetriever = ({ des }: { des: string }) => {
         }, 0)
       );
     }
-    // console.log(householdSingleTotalSum, householdOrdinTotalSum);
   }, [
     btnAble,
     householdOrdinIntF,
@@ -495,7 +487,6 @@ const DataRetriever = ({ des }: { des: string }) => {
 
         return () => clearTimeout(timer);
       }
-      //   setLoadingCharts(!loadingCharts);
       setCallColCharts(true);
       setCallPieCharts(true);
     }
@@ -531,7 +522,6 @@ const DataRetriever = ({ des }: { des: string }) => {
           >
             <Typography
               className="pt-5 pb-10 text-2xl md:text-3xl"
-              //   variant="h4"
               fontWeight="bold"
               aria-label="contentTitle"
             >
@@ -576,7 +566,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                   className="m-1 w-[110px] mb-2"
                 />
               </FormControl>
-
+              {/* County */}
               <FormControl sx={{ minWidth: 200, md: "100%", mt: 1 }}>
                 <InputLabel
                   id="countyInputLabel"
@@ -615,7 +605,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                   className="m-1 min-w-[200px] md:w-[200px] mb-2"
                 />
               </FormControl>
-
+              {/* Town */}
               <FormControl sx={{ minWidth: 200, md: "100%", mt: 1 }}>
                 <InputLabel
                   id="countyInputLabel"
@@ -642,7 +632,6 @@ const DataRetriever = ({ des }: { des: string }) => {
                   }}
                   id="autoTown"
                   options={townName}
-                  // sx={{ width: 300 }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -676,7 +665,7 @@ const DataRetriever = ({ des }: { des: string }) => {
             <Divider
               className="md:w-[70%] w[100%]"
               sx={{
-                mx: "auto", // Align center horizontally
+                mx: "auto",
                 "::before": {
                   borderTop: "thin solid #c29fff",
                 },
@@ -756,7 +745,6 @@ const DataRetriever = ({ des }: { des: string }) => {
           </Typography>
         </Box>
       </main>
-      {/* </Router> */}
     </>
   );
 };
