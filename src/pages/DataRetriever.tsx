@@ -142,9 +142,13 @@ const DataRetriever = ({ des }: { des: string }) => {
             console.error("Error parsing XML:", err);
             return;
           }
-          const townItem = result.townItems.townItem;
-          townName = townItem.map((item: any) => item.townname[0]);
-          setTownName(townName);
+          try {
+            const townItem = result.townItems.townItem;
+            townName = townItem.map((item: any) => item.townname[0]);
+            setTownName(townName);
+          } catch {
+            setTownName([""]);
+          }
         });
       });
   };
@@ -460,6 +464,13 @@ const DataRetriever = ({ des }: { des: string }) => {
     if (getCounty.length !== 0 && getTown.length !== 0) {
       setbtnAble(false);
     }
+    console.log(getYear, getYear === "");
+    if (getCounty.length === 0 && townName.length === 0) {
+      setbtnAble(false);
+    }
+    if (getYear === "" || inputYear === "") {
+      setbtnAble(false);
+    }
     if (router.query.slug) {
       setgetYear(data.slug?.[0]!);
       setgetCounty(data.slug?.[1]!);
@@ -483,7 +494,7 @@ const DataRetriever = ({ des }: { des: string }) => {
       setCallColCharts(true);
       setCallPieCharts(true);
     }
-    if (!getCounty) {
+    if (!getCounty || !getYear) {
       setgetTown("");
       setTownName([""]);
       setControlDisable(false);
@@ -496,7 +507,15 @@ const DataRetriever = ({ des }: { des: string }) => {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.query.slug, getCounty, getTown, setControlDisable]);
+  }, [
+    router.query.slug,
+    getCounty,
+    getTown,
+    setControlDisable,
+    getYear,
+    setbtnAble,
+    inputYear,
+  ]);
 
   return (
     <>
