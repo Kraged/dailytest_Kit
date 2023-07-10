@@ -19,8 +19,8 @@ import Highcharts from "highcharts";
 import { HighchartsReact } from "highcharts-react-official";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
-import { parseString, parseStringPromise } from "xml2js";
+import { useEffect, useState } from "react";
+import { parseString } from "xml2js";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -72,14 +72,13 @@ const DataRetriever = ({ des }: { des: string }) => {
   const availableYear = ["106", "107", "108", "109", "110", "111"];
 
   useEffect(() => {
-    // console.log("useEffect for Axios ListCounty: ", callColCharts);
     axios
       .get("https://api.nlsc.gov.tw/other/ListCounty")
-      .then((response) => {
+      .then((response: any) => {
         const xmlData = response.data;
-        parseString(xmlData, (err, result) => {
-          if (err) {
-            // console.error("Error parsing XML:", err);
+        parseString(xmlData, (error: any, result: any) => {
+          if (error) {
+            setResultText(error, "資料無法存取，請稍後再試。");
             return;
           }
           const countyItems = result.countyItems.countyItem;
@@ -93,14 +92,13 @@ const DataRetriever = ({ des }: { des: string }) => {
           setcountyCodes(countyCodes);
         });
       })
-      .catch((error) => {
-        // console.error("Error fetching XML ListCounty data:", error);
+      .catch((error: any) => {
+        setResultText(error, "資料無法存取，請稍後再試。");
       });
   }, []);
 
   useEffect(() => {
-    // console.log("useEffect for inputCounty: ", callColCharts);
-    if (inputCounty !== "" && fin !== "") {
+    if (inputCounty !== "" && slugHolder !== "") {
       handleCountyGetTown(inputCounty);
     }
   }, [inputCounty]);
@@ -109,7 +107,7 @@ const DataRetriever = ({ des }: { des: string }) => {
     const selectedValue = inputCounty;
     const selectedKey = countyCodes[countyName.indexOf(selectedValue)];
     setgetCounty(selectedValue);
-    if (fin == "") {
+    if (slugHolder == "") {
       setgetTown("");
       getAxiosTown(selectedKey);
     }
@@ -119,11 +117,11 @@ const DataRetriever = ({ des }: { des: string }) => {
   const getAxiosTown = (selectedCountyCodes: string) => {
     axios
       .get(`https://api.nlsc.gov.tw/other/ListTown/${selectedCountyCodes}`)
-      .then((response) => {
+      .then((response: any) => {
         const xmlData = response.data;
-        parseString(xmlData, (err, result) => {
-          if (err) {
-            // console.error("Error parsing XML:", err);
+        parseString(xmlData, (error: any, result: any) => {
+          if (error) {
+            setResultText(error, "資料無法存取，請稍後再試。");
             return;
           }
           const townItems = result?.townItems?.townItem;
@@ -137,10 +135,9 @@ const DataRetriever = ({ des }: { des: string }) => {
       });
   };
 
-  const [fin, setfin] = useState("");
+  const [slugHolder, setSlugHolder] = useState("");
   useEffect(() => {
-    // console.log("useEffect for slug: ", callColCharts);
-    if (router.query.slug && fin === "") {
+    if (router.query.slug && slugHolder === "") {
       const { slug } = router.query;
       const year = slug?.[0] || "";
       const county = slug?.[1] || "";
@@ -149,7 +146,7 @@ const DataRetriever = ({ des }: { des: string }) => {
       setgetYear(year);
       setgetCounty(county);
       setgetTown(town);
-      setfin(town);
+      setSlugHolder(town);
       const text = `${year}年 ${county} ${town}`;
       setResultText(text);
       setCallColCharts(true);
@@ -164,7 +161,7 @@ const DataRetriever = ({ des }: { des: string }) => {
       .get(
         `https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP019/${year}?COUNTY=${county}&TOWN=${town}`
       )
-      .then((response) => {
+      .then((response: any) => {
         const responseData = response.data.responseData;
         sethouseholdOrdinIntM(
           responseData.map(
@@ -201,13 +198,12 @@ const DataRetriever = ({ des }: { des: string }) => {
           )
         );
       })
-      .catch((error) => {
-        // console.error("Error fetching getAxiosCharts data:", error);
+      .catch((error: any) => {
+        setResultText(error, "資料無法存取，請稍後再試。");
       });
   };
 
   useEffect(() => {
-    // console.log("useEffect for Calculating sum: ", callColCharts);
     if (householdOrdinIntM.length > 0) {
       sethouseholdOrdinSumM(
         householdOrdinIntM.reduce(
@@ -298,7 +294,6 @@ const DataRetriever = ({ des }: { des: string }) => {
   };
 
   useEffect(() => {
-    // console.log("useEffect for loadingCharts: ", callColCharts);
     if (loadingCharts) {
       const timer = setTimeout(() => {
         setLoadingCharts(false);
@@ -308,7 +303,6 @@ const DataRetriever = ({ des }: { des: string }) => {
   }, [loadingCharts]);
 
   useEffect(() => {
-    // console.log("useEffect for checking lengths: ", callColCharts);
     getAxiosTown(countyCodes[countyName.indexOf(getCounty)]);
     if (getCounty.length !== 0 && getTown.length !== 0) {
       setbtnAble(false);
@@ -318,8 +312,6 @@ const DataRetriever = ({ des }: { des: string }) => {
     }
     if (!getCounty || !getYear) {
       setControlDisable(false);
-      //   setCallColCharts(false);
-      //   setCallPieCharts(false);
       setbtnAble(true);
       setResultText("");
     } else {
@@ -331,7 +323,6 @@ const DataRetriever = ({ des }: { des: string }) => {
   }, [getCounty, getYear, getTown, countyCodes, countyName]);
 
   useEffect(() => {
-    // console.log("useEffect for updateOptions: ", callColCharts);
     updateOptions(
       householdOrdinSumM,
       householdOrdinSumF,
@@ -357,7 +348,7 @@ const DataRetriever = ({ des }: { des: string }) => {
     singleSumF: number,
     singleTotal: number
   ) => {
-    setOptionsCol((prevOptions) => ({
+    setOptionsCol((prevOptions: any) => ({
       ...prevOptions,
       series: [
         {
@@ -372,7 +363,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         },
       ],
     }));
-    setOptionsPie((prevOptions) => ({
+    setOptionsPie((prevOptions: any) => ({
       ...prevOptions,
       series: [
         {
@@ -503,7 +494,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         <ThemeProvider theme={figmaTheme}>
           <AppBar position="static">
             <Toolbar>
-              <Typography variant="h6" className="grow" aria-label="appBarLogo">
+              <Typography variant="h6" className="grow" aria-label="topLogo">
                 LOGO
               </Typography>
               <SettingsIcon />
@@ -537,6 +528,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     paddingX: "10px",
                     backgroundColor: "white",
                   }}
+                  aria-label="yearTitle"
                 >
                   年份
                 </InputLabel>
@@ -547,7 +539,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     setgetYear(newValue || "");
                   }}
                   inputValue={inputYear}
-                  onInputChange={(event, newInputValue) => {
+                  onInputChange={(event: any, newInputValue: any) => {
                     setInputYear(newInputValue);
                     if (newInputValue === "" && getYear) {
                       setCallColCharts(false);
@@ -562,7 +554,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                   }}
                   id="autoYear"
                   options={availableYear}
-                  renderInput={(params) => (
+                  renderInput={(params: any) => (
                     <TextField
                       {...params}
                       placeholder="年份"
@@ -572,6 +564,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     />
                   )}
                   className="m-1 w-[110px] mb-2"
+                  aria-label="yearInputComplete"
                 />
               </FormControl>
               {/* County */}
@@ -585,6 +578,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     paddingX: "10px",
                     backgroundColor: "white",
                   }}
+                  aria-label="countyTitle"
                 >
                   縣/市
                 </InputLabel>
@@ -601,7 +595,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     }
                   }}
                   inputValue={inputCounty}
-                  onInputChange={(event, newInputValue) => {
+                  onInputChange={(event: any, newInputValue: any) => {
                     setInputCounty(newInputValue);
                     if (newInputValue === "" && newInputValue) {
                       setInputTown("");
@@ -610,7 +604,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                   }}
                   id="autoCounty"
                   options={countyName}
-                  renderInput={(params) => (
+                  renderInput={(params: any) => (
                     <TextField
                       {...params}
                       placeholder="請選擇 縣/市"
@@ -620,6 +614,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     />
                   )}
                   className="m-1 min-w-[200px] md:w-[200px] mb-2"
+                  aria-label="countyInputComplete"
                 />
               </FormControl>
               {/* Town */}
@@ -633,6 +628,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     paddingX: "10px",
                     backgroundColor: "white",
                   }}
+                  aria-label="townTitle"
                 >
                   區
                 </InputLabel>
@@ -643,7 +639,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     setgetTown(newValue || "");
                   }}
                   inputValue={inputTown}
-                  onInputChange={(event, newInputValue) => {
+                  onInputChange={(event: any, newInputValue: any) => {
                     handleCountyGetTown(inputCounty);
                     setInputTown(newInputValue);
                     if (newInputValue === "" && newInputValue) {
@@ -656,7 +652,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                   }}
                   id="autoTown"
                   options={townName}
-                  renderInput={(params) => (
+                  renderInput={(params: any) => (
                     <TextField
                       {...params}
                       placeholder="請先選擇 縣/市"
@@ -668,6 +664,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                   )}
                   disabled={!controlDisable}
                   className="m-1 min-w-[200px] md:w-[200px] mb-2"
+                  aria-label="townInputComplete"
                 />
               </FormControl>
 
@@ -683,6 +680,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                     backgroundColor: "##651fff",
                   },
                 }}
+                aria-label="btnToShow"
               >
                 SUMBIT
               </Button>
@@ -706,6 +704,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                   color: "#c29fff",
                   borderColor: "#c29fff",
                 }}
+                aria-label="chipResults"
               />
             </Divider>
             <div className="text-4xl pt-12">
@@ -721,19 +720,25 @@ const DataRetriever = ({ des }: { des: string }) => {
                         timeout: 50,
                       },
                     }}
+                    aria-label="waitingModal"
                   >
                     <Backdrop
                       sx={{ color: "#fff", zIndex: 999 }}
                       open={loadingCharts}
                       className="flex flex-col"
+                      aria-label="waitingBackdrop"
                     >
                       <CircularProgress />
-                      <Typography className="pt-3">載入中...</Typography>
+                      <Typography className="pt-3" aria-label="waitingText">
+                        載入中...
+                      </Typography>
                     </Backdrop>
                   </Modal>
                 </>
               )}
-              <Typography variant="h4">{resultText}</Typography>
+              <Typography variant="h4" aria-label="resultsDisplay">
+                {resultText}
+              </Typography>
               {callColCharts || callPieCharts ? (
                 <>
                   <div className="flex justify-center py-6 inset-x-0">
@@ -748,6 +753,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                               width: "100%",
                             },
                           }}
+                          aria-label="colCharts"
                         />
                       </div>
                       <div className="pt-16">
@@ -760,6 +766,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                               width: "100%",
                             },
                           }}
+                          aria-label="pieCharts"
                         />
                       </div>
                     </div>
