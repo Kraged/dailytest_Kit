@@ -402,10 +402,6 @@ const DataRetriever = ({ des }: { des: string }) => {
           margin: "0",
           padding: "0",
         },
-        accessibility: {
-          description: "人口數量",
-          enabled: false,
-        },
         align: "high",
         rotation: 0,
         y: -30,
@@ -419,10 +415,6 @@ const DataRetriever = ({ des }: { des: string }) => {
         style: {
           fontSize: "16px",
           fontWeight: "bold",
-        },
-        accessibility: {
-          description: "生活型態",
-          enabled: false,
         },
       },
     },
@@ -446,6 +438,9 @@ const DataRetriever = ({ des }: { des: string }) => {
           },
         },
       },
+    },
+    accessibility: {
+      enabled: false,
     },
   });
   const [optionsPie, setOptionsPie] = useState({
@@ -486,11 +481,10 @@ const DataRetriever = ({ des }: { des: string }) => {
           },
         },
         showInLegend: true,
-        accessibility: {
-          description: "戶數統計",
-          enabled: false,
-        },
       },
+    },
+    accessibility: {
+      enabled: false,
     },
   });
 
