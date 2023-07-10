@@ -98,7 +98,7 @@ const DataRetriever = ({ des }: { des: string }) => {
   }, []);
 
   useEffect(() => {
-    if (inputCounty !== "" && slugHolder !== "") {
+    if (inputCounty !== "" && slugTownHolder !== "") {
       handleCountyGetTown(inputCounty);
     }
   }, [inputCounty]);
@@ -107,7 +107,7 @@ const DataRetriever = ({ des }: { des: string }) => {
     const selectedValue = inputCounty;
     const selectedKey = countyCodes[countyName.indexOf(selectedValue)];
     setgetCounty(selectedValue);
-    if (slugHolder == "") {
+    if (slugTownHolder == "") {
       setgetTown("");
       getAxiosTown(selectedKey);
     }
