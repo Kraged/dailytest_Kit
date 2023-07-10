@@ -402,6 +402,9 @@ const DataRetriever = ({ des }: { des: string }) => {
           margin: "0",
           padding: "0",
         },
+        accessibility: {
+          description: "人口數量",
+        },
         align: "high",
         rotation: 0,
         y: -30,
@@ -489,6 +492,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="Created by Kit Chan" />
         <link rel="icon" href="/favicon.ico" />
+        <script src="https://code.highcharts.com/modules/accessibility.js"></script>
       </Head>
       <main>
         <ThemeProvider theme={figmaTheme}>
