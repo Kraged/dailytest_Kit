@@ -404,6 +404,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         },
         accessibility: {
           description: "人口數量",
+          enabled: false,
         },
         align: "high",
         rotation: 0,
@@ -418,6 +419,10 @@ const DataRetriever = ({ des }: { des: string }) => {
         style: {
           fontSize: "16px",
           fontWeight: "bold",
+        },
+        accessibility: {
+          description: "生活型態",
+          enabled: false,
         },
       },
     },
@@ -481,6 +486,10 @@ const DataRetriever = ({ des }: { des: string }) => {
           },
         },
         showInLegend: true,
+        accessibility: {
+          description: "戶數統計",
+          enabled: false,
+        },
       },
     },
   });
@@ -492,7 +501,6 @@ const DataRetriever = ({ des }: { des: string }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="Created by Kit Chan" />
         <link rel="icon" href="/favicon.ico" />
-        <script src="https://code.highcharts.com/modules/accessibility.js"></script>
       </Head>
       <main>
         <ThemeProvider theme={figmaTheme}>
