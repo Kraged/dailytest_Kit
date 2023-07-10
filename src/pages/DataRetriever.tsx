@@ -93,7 +93,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         });
       })
       .catch((error: any) => {
-        setResultText(`${error} - \n資料無法存取，請稍後再試。`);
+        setResultText(`查無資料，請重新選擇。`);
       });
   }, []);
 
@@ -201,7 +201,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         );
       })
       .catch((error: any) => {
-        setResultText(`${error} - \n資料無法存取，請稍後再試。`);
+        setResultText(`查無資料，請重新選擇。`);
       });
   };
 
@@ -315,7 +315,6 @@ const DataRetriever = ({ des }: { des: string }) => {
     if (!getCounty || !getYear) {
       setControlDisable(false);
       setbtnAble(true);
-      // setResultText("");
     } else {
       setControlDisable(true);
     }
@@ -749,7 +748,7 @@ const DataRetriever = ({ des }: { des: string }) => {
                 </>
               )}
               <Typography variant="h4" aria-label="resultsDisplay">
-                {resultText}
+                {resultText || slugResultHolder}
               </Typography>
               {callColCharts || callPieCharts ? (
                 <>
