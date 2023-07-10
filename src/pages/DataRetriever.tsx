@@ -135,9 +135,10 @@ const DataRetriever = ({ des }: { des: string }) => {
       });
   };
 
-  const [slugHolder, setSlugHolder] = useState("");
+  const [slugTownHolder, setSlugTownHolder] = useState("");
+  const [slugResultHolder, setSlugResultHolder] = useState("");
   useEffect(() => {
-    if (router.query.slug && slugHolder === "") {
+    if (router.query.slug && slugTownHolder === "") {
       const { slug } = router.query;
       const year = slug?.[0] || "";
       const county = slug?.[1] || "";
@@ -146,9 +147,10 @@ const DataRetriever = ({ des }: { des: string }) => {
       setgetYear(year);
       setgetCounty(county);
       setgetTown(town);
-      setSlugHolder(town);
+      setSlugTownHolder(town);
       const text = `${year}年 ${county} ${town}`;
-      setResultText(text);
+      setSlugResultHolder(text);
+      setResultText(slugResultHolder);
       setCallColCharts(true);
       setCallPieCharts(true);
 
@@ -596,6 +598,8 @@ const DataRetriever = ({ des }: { des: string }) => {
                     setInputTown("");
                     setgetTown("");
                     if (newValue === "" && newValue) {
+                      setCallColCharts(false);
+                      setCallPieCharts(false);
                       setInputTown("");
                       setgetTown("");
                     }
@@ -604,6 +608,8 @@ const DataRetriever = ({ des }: { des: string }) => {
                   onInputChange={(event: any, newInputValue: any) => {
                     setInputCounty(newInputValue);
                     if (newInputValue === "" && newInputValue) {
+                      setCallColCharts(false);
+                      setCallPieCharts(false);
                       setInputTown("");
                       setgetTown("");
                     }
