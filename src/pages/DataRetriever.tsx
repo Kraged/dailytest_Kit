@@ -78,7 +78,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         const xmlData = response.data;
         parseString(xmlData, (error: any, result: any) => {
           if (error) {
-            setResultText(error, "資料無法存取，請稍後再試。");
+            setResultText(`${error} - 資料無法存取，請稍後再試。`);
             return;
           }
           const countyItems = result.countyItems.countyItem;
@@ -93,7 +93,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         });
       })
       .catch((error: any) => {
-        setResultText(error, "資料無法存取，請稍後再試。");
+        setResultText(`${error} - 資料無法存取，請稍後再試。`);
       });
   }, []);
 
@@ -121,7 +121,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         const xmlData = response.data;
         parseString(xmlData, (error: any, result: any) => {
           if (error) {
-            setResultText(error, "資料無法存取，請稍後再試。");
+            setResultText(`${error} - 資料無法存取，請稍後再試。`);
             return;
           }
           const townItems = result?.townItems?.townItem;
@@ -199,7 +199,7 @@ const DataRetriever = ({ des }: { des: string }) => {
         );
       })
       .catch((error: any) => {
-        setResultText(error, "資料無法存取，請稍後再試。");
+        setResultText(`${error} - 資料無法存取，請稍後再試。`);
       });
   };
 
